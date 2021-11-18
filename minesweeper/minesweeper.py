@@ -3,8 +3,6 @@ import random
 from config import *
 
 pg.init()
-#HELLO THERE!
-print("no")
 font = pg.font.Font(FONT, FONTSIZE)
 flagImg = pg.image.load(FLAGICON)
 
