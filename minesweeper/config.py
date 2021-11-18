@@ -2,8 +2,8 @@ import os
 
 # Directories
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
-FONTDIR = os.path.join(BASEDIR, "fonts")
-ICONDIR = os.path.join(BASEDIR, "icons")
+FONTDIR = os.path.join(BASEDIR, "assets/fonts")
+ICONDIR = os.path.join(BASEDIR, "assets/icons")
 
 # Text font
 FONT = os.path.join(FONTDIR, "FORCED SQUARE.ttf")
