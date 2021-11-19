@@ -1,15 +1,12 @@
 import os
 
-# Directories
-BASEDIR = os.path.dirname(os.path.realpath(__file__))
-FONTDIR = os.path.join(BASEDIR, "assets/fonts")
-ICONDIR = os.path.join(BASEDIR, "assets/icons")
-
 # Text font
-FONT = os.path.join(FONTDIR, "FORCED SQUARE.ttf")
+FONT = "assets/fonts/FORCED SQUARE.ttf"
 FONTSIZE = 160
 
-FLAGICON = os.path.join(ICONDIR, "flag_icon.png")
+FLAGICON = "assets/icons/flag_icon.png"
+
+MINEICON = "assets/icons/mine_icon.png"
 
 # RGB Colour values
 COLOUR_BLACK = (0, 0, 0)

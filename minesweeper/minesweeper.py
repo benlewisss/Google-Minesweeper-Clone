@@ -1,10 +1,12 @@
 import pygame as pg
+from pygame import gfxdraw
 import random
 from config import *
 
 pg.init()
 font = pg.font.Font(FONT, FONTSIZE)
 flagImg = pg.image.load(FLAGICON)
+mineImg = pg.image.load(MINEICON)
 
 
 def displayNumber(number, yPos, xPos):
@@ -17,9 +19,6 @@ def displayNumber(number, yPos, xPos):
         colour = COLOUR_RED
     elif number == 4:
         colour = COLOUR_PURPLE
-    elif number == -1:
-        number = "•"
-        colour = COLOUR_BLACK
 
     number = str(number)
     number = font.render(number, True, colour)
@@ -30,6 +29,15 @@ def displayNumber(number, yPos, xPos):
     returnString = (pg.transform.scale(number, (20, 40)), (xCenter, yCenter))
 
     return returnString
+
+
+class Mine(pg.sprite.DirtySprite):
+
+    def __init__(self, position):
+        super().__init__()
+        self.image = pg.transform.smoothscale(mineImg, (25, 25))
+        self.position = position
+        self.rect = self.image.get_rect(center=(position[0]+(TILE_SIZE/2),position[1]+(TILE_SIZE/2)))
 
 
 class Tile(pg.sprite.DirtySprite):
@@ -46,6 +54,7 @@ class Tile(pg.sprite.DirtySprite):
 
         self.image.fill(self.colour)
         self.rect = self.image.get_rect(topleft=position)
+
 
     def reveal(self):
         if (((self.position[1]//TILE_SIZE)+1) % 2 == 0) ^ (((self.position[0]//TILE_SIZE)+1) % 2 == 0):
@@ -129,6 +138,10 @@ class Grid():
             for x in range(self.gridWidth):
                 position = (x*(TILE_SIZE), y*(TILE_SIZE))
                 all_sprites.add(Tile(position))
+                
+                if (self.tileValues[y][x] == -1) and (self.tileStatus[y][x] == 1):
+                    all_sprites.add(Mine(position))
+        
 
     def update(self):
         for y in range(self.gridHeight):
@@ -172,8 +185,8 @@ def main():
         board.update()
         screen.blits(board.showNumbers)
 
-        newImg = pg.transform.scale(flagImg, (20, 40)), (20, 20)
-        screen.blit(flagImg, (10, 10))
+        # newImg = pg.transform.scale(flagImg, (20, 40)), (20, 20)
+        # screen.blit(flagImg, (10, 10))
 
         pg.display.flip()
         clock.tick(30)
