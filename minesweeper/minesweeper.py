@@ -272,7 +272,7 @@ def main():
                         board.grid[y][x].reveal()
                         initialRun = False
 
-                    else:
+                    elif playing == True:
                         if (event.button == 1) and (board.grid[y][x].flag == False):
                             board.grid[y][x].reveal()
                             print(Grid.unknownTileCount)
