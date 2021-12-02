@@ -248,14 +248,14 @@ def main():
     flagCount = mineCount
 
     initialRun = True
-    alive = True
+    playing = True
     
     while not done:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
 
-            if (event.type == pg.USEREVENT) and (initialRun == False) and (alive == True):
+            if (event.type == pg.USEREVENT) and (initialRun == False) and (playing == True):
                 counter += 1
     
             elif event.type == pg.MOUSEBUTTONDOWN:
@@ -278,10 +278,11 @@ def main():
                             print(Grid.unknownTileCount)
 
                             if board.grid[y][x].mine == True:
-                                alive = False
+                                playing = False
                                 print("You died!")
 
                             if Grid.unknownTileCount == mineCount:
+                                playing = False
                                 print("You win!")
 
                         elif (event.button == 3) and (board.grid[y][x].clicked == False):
