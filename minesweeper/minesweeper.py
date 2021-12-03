@@ -101,10 +101,11 @@ class Tile(pg.sprite.DirtySprite):
 
 
     def reveal(self):
+        if self.clicked == False:
+            Grid.unknownTileCount -= 1
         self.flag = False
         self.clicked = True
         self.update = True
-        Grid.unknownTileCount -= 1
 
         if (self.count == 0) and (self.mine == False):
             for j in range(-1, 2):
