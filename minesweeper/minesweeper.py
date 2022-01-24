@@ -16,30 +16,33 @@ displayInfo = pg.display.Info()
 displayResolution = (displayInfo.current_w, displayInfo.current_h)
 print(displayResolution)
 
-difficulty = "Easy"
+def difficultySelection(difficulty):
+    global difficultyName
+    global gridWidth
+    global gridHeight
+    global mineCount
+    global TILE_SIZE
+    if difficulty == 1:
+        difficultyName = "EASY"
+        gridWidth = 10
+        gridHeight = 8
+        mineCount = 10
+        TILE_SIZE = 108
 
-if difficulty == "Easy":
-    gridWidth = 10
-    gridHeight = 8
-    mineCount = 10
-    TILE_SIZE = 80
+    elif difficulty == 2:
+        difficultyName = "MEDIUM"
+        gridWidth = 18
+        gridHeight = 14
+        mineCount = 40
+        TILE_SIZE = 60
 
-elif difficulty == "Medium":
-    gridWidth = 18
-    gridHeight = 14
-    mineCount = 40
-    TILE_SIZE = 60
-
-elif difficulty == "Hard":
-    gridWidth = 24
-    gridHeight = 20
-    mineCount = 99
-    TILE_SIZE = 40
-
-
-flags = pg.HWSURFACE | pg.DOUBLEBUF
-screen = pg.display.set_mode((TILE_SIZE * gridWidth, (TILE_SIZE * gridHeight) + TAB_SIZE), flags)
-
+    elif difficulty == 3:
+        difficultyName = "HARD"
+        gridWidth = 24
+        gridHeight = 20
+        mineCount = 99
+        TILE_SIZE = 45
+        
 
 class Tile(pg.sprite.DirtySprite):
 
@@ -125,6 +128,10 @@ class Tile(pg.sprite.DirtySprite):
 
 class Grid():
     def __init__(self, seed=0):
+        global screen
+        flags = pg.HWSURFACE | pg.DOUBLEBUF
+        screen = pg.display.set_mode((TILE_SIZE * gridWidth, (TILE_SIZE * gridHeight) + TAB_SIZE), flags)
+
         self.seed = seed
         Grid.grid = [[0 for column in range(gridWidth)] for row in range(gridHeight)]
         Grid.unknownTileCount = gridWidth*gridHeight
@@ -206,11 +213,11 @@ class Tab():
         tabRect = pg.Rect(0, 0, gridWidth*TILE_SIZE, TAB_SIZE)
         pg.draw.rect(screen, COLOUR_TAB, tabRect)
 
-        difficultyBox = pg.Rect(25, 25, 200, TAB_SIZE//2)
-        pg.draw.rect(screen, COLOUR_WHITE, difficultyBox, border_radius=10)
+        self.difficultyBox = pg.Rect(25, 25, 200, TAB_SIZE//2)
+        pg.draw.rect(screen, COLOUR_WHITE, self.difficultyBox, border_radius=10)
         
-        difficultyText = textFont.render(difficulty, True, COLOUR_BLACK)
-        difficultyTextRect = difficultyText.get_rect(center=(125, TAB_SIZE//2 + 2))
+        difficultyText = textFont.render(difficultyName, True, COLOUR_BLACK)
+        difficultyTextRect = difficultyText.get_rect(center=(125, TAB_SIZE//2 - 1))
         screen.blit(difficultyText, difficultyTextRect)
 
 
@@ -234,10 +241,12 @@ class Tab():
 
 
 
-def main():
+def main(difficulty=1):
     clock = pg.time.Clock()
     
     done = False
+
+    difficultySelection(difficulty)
     
     board = Grid(17)
     board.initiate()
@@ -250,11 +259,12 @@ def main():
 
     initialRun = True
     playing = True
-    
+
     while not done:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
+                pg.quit()            
 
             if (event.type == pg.USEREVENT) and (initialRun == False) and (playing == True):
                 counter += 1
@@ -263,6 +273,15 @@ def main():
                 if event.pos[1] <= TAB_SIZE:
                     y = event.pos[1]
                     x = event.pos[0]
+                    if pg.Rect.collidepoint(tab.difficultyBox, event.pos) == True:
+                        if difficulty == 1:
+                            main(2)
+
+                        elif difficulty == 2:
+                            main(3)
+
+                        elif difficulty == 3:
+                            main(1)
                 else:
                     y = (event.pos[1] - TAB_SIZE)//TILE_SIZE
                     x = event.pos[0]//TILE_SIZE
@@ -282,7 +301,7 @@ def main():
                                 playing = False
                                 print("You died!")
 
-                            if Grid.unknownTileCount == mineCount:
+                            if Grid.unknownTileCount-1 == mineCount:
                                 playing = False
                                 print("You win!")
 
@@ -293,7 +312,7 @@ def main():
                             elif (board.grid[y][x].flag == True):
                                 board.grid[y][x].flag = False
                                 flagCount += 1
-                                
+            
 
         tab.draw(counter, flagCount)
         board.draw()

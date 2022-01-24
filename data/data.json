@@ -1,0 +1,40 @@
+{
+    "Ben": {
+        "dateCreated": "01/14/22",
+        "timeCreated": "17:06:28",
+        "easy": {
+            "bestTime": 70,
+            "bestTime_Date": "01/14/22",
+            "bestTime_Time": "17:06:45"
+        },
+        "medium": {
+            "bestTime": 999,
+            "bestTime_Date": null,
+            "bestTime_Time": null
+        },
+        "hard": {
+            "bestTime": 20,
+            "bestTime_Date": "01/14/22",
+            "bestTime_Time": "17:06:28"
+        }
+    },
+    "John": {
+        "dateCreated": "01/14/22",
+        "timeCreated": "17:07:09",
+        "easy": {
+            "bestTime": 21,
+            "bestTime_Date": "01/14/22",
+            "bestTime_Time": "17:23:35"
+        },
+        "medium": {
+            "bestTime": 999,
+            "bestTime_Date": null,
+            "bestTime_Time": null
+        },
+        "hard": {
+            "bestTime": 999,
+            "bestTime_Date": null,
+            "bestTime_Time": null
+        }
+    }
+}
