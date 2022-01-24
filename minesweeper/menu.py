@@ -5,8 +5,10 @@ import random
 
 print("\033c")
 
+resolution = 720
+
 pg.init()
-screen = pg.display.set_mode((1080, 1080))
+screen = pg.display.set_mode((resolution, resolution))
 textFont = pg.font.Font(TEXT_FONT, 15)
 
 mineColours = [MINE_BLUE, MINE_CYAN, MINE_MAGENTA, MINE_ORANGE, MINE_PURPLE, MINE_RED, MINE_YELLOW]
@@ -91,36 +93,38 @@ class MinesweeperApp(object):
     _difficultyName: str
 
     def __init__(self):
+        self.difficulty_select(None, 1)
+        self.setup_menus()
+        self.setup_grid()
+        
+
+    def difficulty_select(self, item: tuple, value: int):
+        if value == 0:
+            self._difficultyName = "EASY"
+            self._gridWidth = 10
+            self._gridHeight = 8
+            self._mineCount = 10
+            self._tileSize = resolution/10
+
+        elif value == 1:
+            self._difficultyName = "MEDIUM"
+            self._gridWidth = 18
+            self._gridHeight = 14
+            self._mineCount = 40
+            self._tileSize = resolution/18
+
+        elif value == 2:
+            self._difficultyName = "HARD"
+            self._gridWidth = 24
+            self._gridHeight = 20
+            self._mineCount = 99
+            self._tileSize = resolution/24
+
+        set_constant(self._tileSize)
         self.setup_menus()
         self.setup_grid()
 
     def setup_menus(self):
-
-        def difficulty_select(item: tuple, value: int):
-            if value == 0:
-                self._difficultyName = "EASY"
-                self._gridWidth = 10
-                self._gridHeight = 8
-                self._mineCount = 10
-                self._tileSize = 108
-
-            elif value == 1:
-                self._difficultyName = "MEDIUM"
-                self._gridWidth = 18
-                self._gridHeight = 14
-                self._mineCount = 40
-                self._tileSize = 60
-
-            elif value == 2:
-                self._difficultyName = "HARD"
-                self._gridWidth = 24
-                self._gridHeight = 20
-                self._mineCount = 99
-                self._tileSize = 45
-
-            set_constant(self._tileSize)
-        
-        difficulty_select(None, 1)
 
         # Configure homeTheme 
         homeTheme = pgm.Theme()
@@ -156,32 +160,32 @@ class MinesweeperApp(object):
             rows=10,
             theme=homeTheme,
             title="",
-            width=1080
+            width=resolution
         )
 
         settings_menu = pgm.Menu(
-            width=480, 
-            height=800,
+            width=resolution/2.25, 
+            height=resolution/1.5,
             columns=1,
             rows=10,
             mouse_motion_selection=True,
-            position=(300, 140, False),
+            position=((resolution-(resolution/2.25))/2, (resolution-(resolution/1.5))/2, False),
             theme=settingsTheme,
             title=""
         )
 
         btn = settings_menu.add.button(
             "  ",
-            pgm.events.BACK,
+            self.__init__,
             button_id="settings_back",
-            align=pgm.locals.ALIGN_LEFT,
+            align=pgm.locals.ALIGN_CENTER,
             float=True,
             font_size=25,
             cursor=pgm.locals.CURSOR_HAND,
             selection_effect=pgm.widgets.NoneSelection(),
             margin=(40,40)
         )
-        btn.translate(-25,-392)
+        btn.translate((-(resolution/2.25)/2)-10,(-(resolution/1.5)/2)+13)
 
         btn = settings_menu.add.dropselect(
             title="",
@@ -191,7 +195,7 @@ class MinesweeperApp(object):
             dropselect_id="difficulty",
             default=1,
             font_size=16,
-            onchange=difficulty_select,
+            onchange=self.difficulty_select,
             padding=0,
             placeholder='Select one',
             selection_box_height=5,
@@ -227,25 +231,21 @@ class MinesweeperApp(object):
         )
 
     def update_gui(self, events):
-        gameArea = pg.Surface((1080, 980))
-        gameArea.fill(COLOUR_BLACK)
-        #screen.blit(gameArea, [0,100])
         self._menu.update(events)
         self._menu.draw(screen)
     
     def setup_grid(self):
-        self.grid = [[0 for column in range(self._gridWidth)] for row in range(self._gridHeight)]
-        
+        self.grid = [[0 for column in range(self._gridWidth)] for row in range(self._gridHeight)] 
         for y in range(self._gridHeight):
                 for x in range(self._gridWidth):
                     self.grid[y][x] = Tile(y, x)
 
     def draw_grid(self):
-            for y in range(self._gridHeight):
-                for x in range(self._gridWidth):
-                    if self.grid[y][x].update == True:
-                        self.grid[y][x].draw()
-                        self.grid[y][x].update = False
+        for y in range(self._gridHeight):
+            for x in range(self._gridWidth):
+                if self.grid[y][x].update == True:
+                    self.grid[y][x].draw()
+                    self.grid[y][x].update = False
 
     def mainLoop(self):
         while True:
@@ -255,7 +255,7 @@ class MinesweeperApp(object):
                     exit()
 
                 elif event.type == pg.MOUSEBUTTONDOWN:
-                    print(self._difficultyName)
+                    pass
                     
             self.draw_grid()
             self.update_gui(events)
