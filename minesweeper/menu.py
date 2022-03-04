@@ -18,6 +18,10 @@ settingsMenuImage = pgm.baseimage.BaseImage(
     image_path=SETTINGSMENU,
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
+promptImage = pgm.baseimage.BaseImage(
+    image_path=PROMPT,
+    drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+
 def set_constant(tileSize):
     global TILE_SIZE
     TILE_SIZE = tileSize
@@ -84,7 +88,10 @@ class Tile(pg.sprite.DirtySprite):
 
 class MinesweeperApp(object):
     _visualize: bool
+    _playing: bool
+    _finished: bool
     _menu: "pgm.Menu"
+    _prompt: "pgm.Menu"
     _gridWidth: int
     _gridHeight: int
     _mineCount: int
@@ -94,7 +101,9 @@ class MinesweeperApp(object):
     _difficultyName: str
 
     def __init__(self):
-        self._seed=17
+        self._seed = 17
+        self._playing = True
+        self._finished = False
         self.difficulty_select(None, 1)
         self.setup_menus()
         self.setup_grid()
@@ -125,9 +134,14 @@ class MinesweeperApp(object):
 
         set_constant(self._tileSize)
         self._unknownTileCount = self._gridWidth*self._gridHeight
+        self._playing = True
         screen.fill(COLOUR_BORDER)
         self.setup_menus()
         self.setup_grid()
+
+    def open_link(*args) -> None:
+        link: "pgm.widgets.MenuLink" = args[-1]
+        link.open()
 
     def setup_menus(self):
 
@@ -155,6 +169,18 @@ class MinesweeperApp(object):
         settingsTheme.widget_font_color = (100, 12, 14)
         settingsTheme.widget_font_size = 40
         settingsTheme.widget_padding = 0
+
+        # Configure promptTheme
+        promptTheme = pgm.Theme()
+        promptTheme.background_color = promptImage
+        promptTheme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
+        promptTheme.title_close_button = False
+        promptTheme.title_font_size = 40
+        promptTheme.widget_alignment = pgm.locals.ALIGN_CENTER
+        promptTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
+        promptTheme.widget_font_color = (100, 12, 14)
+        promptTheme.widget_font_size = 40
+        promptTheme.widget_padding = 0
         
 
         self._menu = pgm.Menu(
@@ -178,6 +204,31 @@ class MinesweeperApp(object):
             theme=settingsTheme,
             title=""
         )
+
+        self._prompt = pgm.Menu(
+            width=320, 
+            height=160,
+            columns=2,
+            rows=2,
+            mouse_motion_selection=True,
+            position=(200, 110, False),
+            theme=promptTheme,
+            title=""
+        )
+
+        btn = self._prompt.add.button(
+            " ",
+            self.__init__,
+            button_id="settings_back",
+            align=pgm.locals.ALIGN_CENTER,
+            float=True,
+            font_color=COLOUR_WHITE,
+            font_size=30,
+            cursor=pgm.locals.CURSOR_HAND,
+            selection_effect=pgm.widgets.NoneSelection(),
+            margin=(40,40)
+        )
+        btn.translate(-100,-84)
 
         btn = settings_menu.add.button(
             " ",
@@ -236,9 +287,63 @@ class MinesweeperApp(object):
             scale=(0.06, 0.06)
         )
 
+    def prompt(self, result:bool, score=2):
+        self._playing = False
+        score="{:03d}".format(score)
+        highscore="{:03d}".format(999)
+
+        if result == True:
+            self._finished = True
+
+            scoreText = self._prompt.add.label(
+            score, 
+            max_char=-1, 
+            font_name=pgm.font.FONT_FIRACODE_BOLD,
+            font_size=22,
+            font_color=COLOUR_WHITE, 
+            align=pgm.locals.ALIGN_LEFT
+            )
+            scoreText.translate(69,28)
+
+            highscoreText = self._prompt.add.label(
+            highscore, 
+            max_char=-1, 
+            font_name=pgm.font.FONT_FIRACODE_BOLD,
+            font_size=22,
+            font_color=COLOUR_WHITE, 
+            align=pgm.locals.ALIGN_RIGHT
+            )     
+            highscoreText.translate(-69,28)
+        
+        elif result == False:
+            self._finished = True
+
+            scoreText = self._prompt.add.label(
+            "000", 
+            max_char=-1, 
+            font_name=pgm.font.FONT_FIRACODE_BOLD,
+            font_size=22,
+            font_color=COLOUR_WHITE, 
+            align=pgm.locals.ALIGN_LEFT
+            )
+            scoreText.translate(69,28)
+
+            highscoreText = self._prompt.add.label(
+            highscore, 
+            max_char=-1, 
+            font_name=pgm.font.FONT_FIRACODE_BOLD,
+            font_size=22,
+            font_color=COLOUR_WHITE, 
+            align=pgm.locals.ALIGN_RIGHT
+            )     
+            highscoreText.translate(-69,28)
+
     def update_gui(self, events):
         self._menu.update(events)
         self._menu.draw(screen)
+        if self._finished == True:
+            self._prompt.update(events)
+            self._prompt.draw(screen)
     
     def setup_grid(self):
         self.grid = [[0 for column in range(self._gridWidth)] for row in range(self._gridHeight)] 
@@ -335,7 +440,6 @@ class MinesweeperApp(object):
         
 
     def mainLoop(self):
-        playing = True
         flagCount = self._mineCount
         while True:
             events = pg.event.get()
@@ -354,18 +458,16 @@ class MinesweeperApp(object):
                                     self.generate_grid(y,x)
                                     self.reveal_tiles(y,x)
 
-                            if playing == True:
+                            if self._playing == True:
                                 if (event.button == 1) and (self.grid[y][x].flag == False):
                                     self.reveal_tiles(y,x)
                                     print(self._unknownTileCount)
 
                                     if self.grid[y][x].mine == True:
-                                        playing = False
-                                        print("You died!")
+                                        self.prompt(False)
 
                                     if self._unknownTileCount-1 == self._mineCount:
-                                        playing = False
-                                        print("You win!")
+                                        self.prompt(True)
 
                                 elif (event.button == 3) and (self.grid[y][x].clicked == False):
                                     if (self.grid[y][x].flag == False) and (flagCount > 0):
