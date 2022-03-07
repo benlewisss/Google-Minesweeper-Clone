@@ -1,6 +1,7 @@
 import pygame as pg
 import pygame_menu as pgm
 from config import *
+import datetime
 import random
 
 print("\033c")
@@ -10,6 +11,7 @@ resolution = 720
 pg.init()
 screen = pg.display.set_mode((resolution, resolution))
 textFont = pg.font.Font(TEXT_FONT, 15)
+numberFont = pg.font.Font(NUMBER_FONT, 35)
 
 mineColours = [MINE_BLUE, MINE_CYAN, MINE_MAGENTA, MINE_ORANGE, MINE_PURPLE, MINE_RED, MINE_YELLOW]
 numbers = [NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4]
@@ -90,7 +92,9 @@ class MinesweeperApp(object):
     _visualize: bool
     _playing: bool
     _finished: bool
+    _gamestart: bool
     _menu: "pgm.Menu"
+    _settings: "pgm.Menu"
     _prompt: "pgm.Menu"
     _gridWidth: int
     _gridHeight: int
@@ -98,12 +102,16 @@ class MinesweeperApp(object):
     _tileSize: int
     _seed: int
     _unknownTileCount: int
+    _timer: int
+    _flagCount: int
     _difficultyName: str
 
     def __init__(self):
         self._seed = 17
+        self._gamestart = False
         self._playing = True
         self._finished = False
+        self._timer = 0
         self.difficulty_select(None, 1)
         self.setup_menus()
         self.setup_grid()
@@ -135,6 +143,9 @@ class MinesweeperApp(object):
         set_constant(self._tileSize)
         self._unknownTileCount = self._gridWidth*self._gridHeight
         self._playing = True
+        self._timer = 0
+        self._gamestart = False
+        self._flagCount = self._mineCount
         screen.fill(COLOUR_BORDER)
         self.setup_menus()
         self.setup_grid()
@@ -184,6 +195,7 @@ class MinesweeperApp(object):
         
 
         self._menu = pgm.Menu(
+            menu_id="home_menu_instance",
             height=100,
             mouse_motion_selection=True,
             position=(0, 0, False),
@@ -194,7 +206,8 @@ class MinesweeperApp(object):
             width=resolution
         )
 
-        settings_menu = pgm.Menu(
+        self._settings = pgm.Menu(
+            menu_id="settings_menu_instance",
             width=320, 
             height=534,
             columns=1,
@@ -206,6 +219,7 @@ class MinesweeperApp(object):
         )
 
         self._prompt = pgm.Menu(
+            menu_id="prompt_menu_instance",
             width=320, 
             height=160,
             columns=2,
@@ -230,7 +244,7 @@ class MinesweeperApp(object):
         )
         btn.translate(-100,-84)
 
-        btn = settings_menu.add.button(
+        btn = self._settings.add.button(
             " ",
             self.__init__,
             button_id="settings_back",
@@ -244,7 +258,7 @@ class MinesweeperApp(object):
         )
         btn.translate(-180,-270)
 
-        btn = settings_menu.add.dropselect(
+        btn = self._settings.add.dropselect(
             title="",
             items=[("Easy", 0),
                    ("Medium", 1),
@@ -266,7 +280,7 @@ class MinesweeperApp(object):
         
         btn = self._menu.add.button(
             "  ",
-            settings_menu,
+            self._settings,
             button_id="settingsButton",
             align=pgm.locals.ALIGN_LEFT,
             float=True,
@@ -287,10 +301,10 @@ class MinesweeperApp(object):
             scale=(0.06, 0.06)
         )
 
-    def prompt(self, result:bool, score=2):
+    def prompt(self, result:bool):
         self._playing = False
-        score="{:03d}".format(score)
-        highscore="{:03d}".format(999)
+        score="{:03d}".format(self._timer)
+        highscore="{:03d}".format(000)
 
         if result == True:
             self._finished = True
@@ -344,6 +358,24 @@ class MinesweeperApp(object):
         if self._finished == True:
             self._prompt.update(events)
             self._prompt.draw(screen)
+
+        flagImg = pg.image.load(FLAGICON)
+        flagImg = pg.transform.smoothscale(flagImg, (50, 50))
+        flagImgRect = flagImg.get_rect(center=((TILE_SIZE*self._gridWidth)//2 - 120, TAB_SIZE//2))
+        screen.blit(flagImg, flagImgRect)
+
+        flagCount = numberFont.render(str(self._flagCount).zfill(1), True, COLOUR_WHITE)
+        flagCountRect = flagCount.get_rect(midleft=((TILE_SIZE*self._gridWidth)//2 - 85, TAB_SIZE//2))
+        screen.blit(flagCount, flagCountRect)
+        
+        clockImg = pg.image.load(CLOCKICON)
+        clockImg = pg.transform.smoothscale(clockImg, (50, 50))
+        clockImgRect = clockImg.get_rect(center=((TILE_SIZE*self._gridWidth)//2 + 90, TAB_SIZE//2))
+        screen.blit(clockImg, clockImgRect)
+
+        counter = numberFont.render(str(self._timer).zfill(3), True, COLOUR_WHITE)
+        counterRect = counter.get_rect(midleft=((TILE_SIZE*self._gridWidth)//2 + 120, TAB_SIZE//2))
+        screen.blit(counter, counterRect)
     
     def setup_grid(self):
         self.grid = [[0 for column in range(self._gridWidth)] for row in range(self._gridHeight)] 
@@ -440,18 +472,31 @@ class MinesweeperApp(object):
         
 
     def mainLoop(self):
-        flagCount = self._mineCount
+        pg.time.set_timer(pg.USEREVENT, 1000)
+        gridClickable = True
         while True:
+            current_menu = self._menu.get_current()
+            current_menu_id = current_menu.get_id()
+            if current_menu_id == "settings_menu_instance":
+                gridClickable = False
+            if current_menu_id == "home_menu_instance":
+                gridClickable = True
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
                     exit()
-
-                elif event.type == pg.MOUSEBUTTONDOWN:
+                
+                if (self._gamestart == True) and (self._playing == True) and (gridClickable == True) and (event.type == pg.USEREVENT):
+                    self._timer += 1
+                    
+                elif (event.type == pg.MOUSEBUTTONDOWN) and (gridClickable == True):
                     if event.pos[1] >= 100:
                         y = int((event.pos[1] - 100)//TILE_SIZE)
                         x = int(event.pos[0]//TILE_SIZE)
-                        print(y,x)
+
+                        if (y < self._gridHeight) and (x < self._gridWidth) and (self._gamestart == False):
+                            self._gamestart = True
+
                         try:
                             if self.grid[y][x]:
                                 if self._unknownTileCount == (self._gridWidth*self._gridHeight):
@@ -461,7 +506,6 @@ class MinesweeperApp(object):
                             if self._playing == True:
                                 if (event.button == 1) and (self.grid[y][x].flag == False):
                                     self.reveal_tiles(y,x)
-                                    print(self._unknownTileCount)
 
                                     if self.grid[y][x].mine == True:
                                         self.prompt(False)
@@ -470,19 +514,19 @@ class MinesweeperApp(object):
                                         self.prompt(True)
 
                                 elif (event.button == 3) and (self.grid[y][x].clicked == False):
-                                    if (self.grid[y][x].flag == False) and (flagCount > 0):
+                                    if (self.grid[y][x].flag == False) and (self._flagCount > 0):
                                         self.grid[y][x].update = True
                                         self.grid[y][x].flag = True
-                                        flagCount -= 1
+                                        self._flagCount -= 1
                                     elif (self.grid[y][x].flag == True):
                                         self.grid[y][x].update = True
                                         self.grid[y][x].flag = False
-                                        flagCount += 1
+                                        self._flagCount += 1
 
 
                         except IndexError:
                             pass
-                    
+        
             self.draw_grid()
             self.update_gui(events)
             pg.display.update()

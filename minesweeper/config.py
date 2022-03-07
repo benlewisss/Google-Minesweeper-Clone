@@ -1,36 +1,36 @@
 import os
 
 # Text font
-MAIN_FONT = "Minesweeper-main/assets/fonts/FORCED SQUARE.ttf"
+MAIN_FONT = "assets/fonts/FORCED SQUARE.ttf"
 MAIN_FONT_SIZE = 160
 
-TEXT_FONT = "Minesweeper-main/assets/fonts/Roboto-Regular.ttf"
+TEXT_FONT = "assets/fonts/Roboto-Regular.ttf"
 TEXT_FONT_SIZE = 40
 
-NUMBER_FONT = "Minesweeper-main/assets/fonts/Roboto-Light.ttf"
+NUMBER_FONT = "assets/fonts/Roboto-Regular.ttf"
 NUMBER_FONT_SIZE = 60
 
-FLAGICON = "Minesweeper-main/assets/icons/flag.png"
-CLOCKICON = "Minesweeper-main/assets/icons/clock.png"
-SOUNDICON = "Minesweeper-main/assets/icons/sound_on.png"
-MUTEICON = "Minesweeper-main/assets/icons/sound_off.png"
-EXITICON = "Minesweeper-main/assets/icons/exit.png"
-SETTINGSICON = "Minesweeper-main/assets/icons/settings.png"
-SETTINGSMENU = "Minesweeper-main/assets/elements/menu_settings_720.png"
-PROMPT = "Minesweeper-main/assets/elements/prompt_template.png"
+FLAGICON = "assets/icons/flag.png"
+CLOCKICON = "assets/icons/clock.png"
+SOUNDICON = "assets/icons/sound_on.png"
+MUTEICON = "assets/icons/sound_off.png"
+EXITICON = "assets/icons/exit.png"
+SETTINGSICON = "assets/icons/settings.png"
+SETTINGSMENU = "assets/elements/menu_settings_720.png"
+PROMPT = "assets/elements/prompt_template.png"
 
-NUMBER_1 = "Minesweeper-main/assets/icons/num_1.png"
-NUMBER_2 = "Minesweeper-main/assets/icons/num_2.png"
-NUMBER_3 = "Minesweeper-main/assets/icons/num_3.png"
-NUMBER_4 = "Minesweeper-main/assets/icons/num_4.png"
+NUMBER_1 = "assets/icons/num_1.png"
+NUMBER_2 = "assets/icons/num_2.png"
+NUMBER_3 = "assets/icons/num_3.png"
+NUMBER_4 = "assets/icons/num_4.png"
 
-MINE_BLUE = "Minesweeper-main/assets/icons/mine_blue.png"
-MINE_CYAN = "Minesweeper-main/assets/icons/mine_cyan.png"
-MINE_MAGENTA = "Minesweeper-main/assets/icons/mine_magenta.png"
-MINE_ORANGE = "Minesweeper-main/assets/icons/mine_orange.png"
-MINE_PURPLE = "Minesweeper-main/assets/icons/mine_purple.png"
-MINE_RED = "Minesweeper-main/assets/icons/mine_red.png"
-MINE_YELLOW = "Minesweeper-main/assets/icons/mine_yellow.png"
+MINE_BLUE = "assets/icons/mine_blue.png"
+MINE_CYAN = "assets/icons/mine_cyan.png"
+MINE_MAGENTA = "assets/icons/mine_magenta.png"
+MINE_ORANGE = "assets/icons/mine_orange.png"
+MINE_PURPLE = "assets/icons/mine_purple.png"
+MINE_RED = "assets/icons/mine_red.png"
+MINE_YELLOW = "assets/icons/mine_yellow.png"
 
 
 
@@ -55,5 +55,8 @@ TILE_GREEN2 = (142, 204, 57)
 
 # Feature dimensions in pixels
 TAB_SIZE = 100
+
+# Gameplay
+FPS = 60
  
 # 192 x 320
