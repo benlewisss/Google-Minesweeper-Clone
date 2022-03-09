@@ -7,11 +7,10 @@ import database
 
 print("\033c")
 
+USER_ID=1
 
 db = database.Database()
-global user_id
-user = ("Ben", "Zephos")
-user_id = db.create_user(user)
+db.show_all_data()
 
 resolution = 720
 
@@ -31,9 +30,24 @@ promptImage = pgm.baseimage.BaseImage(
     image_path=PROMPT,
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
-def set_constant(tileSize):
+def tilesize_set_constant(tileSize):
     global TILE_SIZE
-    TILE_SIZE = tileSize
+    TILE_SIZE = tileSize 
+
+def user_set_constant(username):
+    global USER_ID
+    user = ("", username)
+    db.create_user(user)
+    USER_ID = db.get_id(username)
+    #print(USER_ID)
+
+
+def check_name_test(value: str):
+    """
+    This function tests the text input widget.
+    :param value: The widget value
+    """
+    print(f'User name: {value}')
 
 
 class Tile(pg.sprite.DirtySprite):
@@ -149,7 +163,7 @@ class MinesweeperApp(object):
             self._mineCount = 99
             self._tileSize = int(resolution/24)
 
-        set_constant(self._tileSize)
+        tilesize_set_constant(self._tileSize)
         self._unknownTileCount = self._gridWidth*self._gridHeight
         self._gamestart = False
         self._playing = True
@@ -163,6 +177,14 @@ class MinesweeperApp(object):
 
     def exit_menu(self):
         self.difficulty_select(None, self._difficultyNum)
+
+    def check_name_test(self, value: str):
+        """
+        This function tests the text input widget.
+        :param value: The widget value
+        """
+        user_set_constant(value)
+        self.__init__()
 
     def setup_menus(self):
 
@@ -261,12 +283,12 @@ class MinesweeperApp(object):
             align=pgm.locals.ALIGN_CENTER,
             float=True,
             font_color=COLOUR_WHITE,
-            font_size=30,
+            font_size=35,
             cursor=pgm.locals.CURSOR_HAND,
             selection_effect=pgm.widgets.NoneSelection(),
             margin=(40,40)
         )
-        btn.translate(-180,-270)
+        btn.translate(-180,-250)
 
         btn = self._settings.add.dropselect(
             title="",
@@ -287,6 +309,30 @@ class MinesweeperApp(object):
             selection_option_font_size=20,
             shadow_width=20
         )
+
+        btn = self._settings.add.text_input(
+            "    ",
+            default="",
+            onreturn=self.check_name_test,
+            textinput_id="username",
+            background_color=COLOUR_WHITE,
+            border_color=COLOUR_BLACK,
+            border_width=1,
+            font_color=COLOUR_BLACK,
+            font_name=TEXT_FONT,
+            font_size=32,
+            padding=1,
+            selection_effect=pgm.widgets.NoneSelection(),
+            text_ellipsis="..."
+        )
+        btn.translate(0,15)
+
+        btn = self._settings.add.label(
+            db.get_username(USER_ID), 
+            font_name=TEXT_FONT, 
+            font_size=15
+        )
+        btn.translate(0,-110)
         
         btn = self._menu.add.button(
             "  ",
@@ -315,11 +361,12 @@ class MinesweeperApp(object):
         self._playing = False
         score="{:03d}".format(self._timer)
         
-        highscoreFormat = (user_id, int(score))
-        if result == True:
-            db.submit_score(highscoreFormat)
+        highscoreFormatted = (USER_ID, int(score))
 
-        highscore="{:03d}".format(db.get_score(user_id))
+        if result == True:
+            db.submit_score(highscoreFormatted)
+
+        highscore="{:03d}".format(db.get_score(USER_ID))
 
         if result == True:
             self._finished = True

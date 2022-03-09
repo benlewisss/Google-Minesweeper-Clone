@@ -66,8 +66,6 @@ class Database():
             # Execute Query
             c.execute(sql, user)
 
-        else:
-            pass
 
         c.execute("SELECT * FROM users WHERE username=?", (user[1],))
         results = c.fetchone()
@@ -113,6 +111,46 @@ class Database():
         
         # Execute Query
         c.execute("SELECT * FROM scores WHERE user_id=?", (user_id,))
+        record = c.fetchone()
+        if record == None:
+            record = 0
+        else:
+            record = record[2]
+
+        # Commit Changes
+        conn.commit()
+
+        # Close Connection
+        conn.close()
+
+        return record
+
+    def get_id(self, username):
+        # Creates/Connects to Database
+        conn = sqlite3.connect("data/database.db")
+        # Create Cursor
+        c = conn.cursor()
+        
+        # Execute Query
+        c.execute("SELECT * FROM users WHERE username=?", (username,))
+        record = c.fetchone()[0]
+
+        # Commit Changes
+        conn.commit()
+
+        # Close Connection
+        conn.close()
+
+        return record
+
+    def get_username(self, user_id):
+        # Creates/Connects to Database
+        conn = sqlite3.connect("data/database.db")
+        # Create Cursor
+        c = conn.cursor()
+        
+        # Execute Query
+        c.execute("SELECT * FROM users WHERE id=?", (user_id,))
         record = c.fetchone()[2]
 
         # Commit Changes
@@ -224,13 +262,7 @@ class Database():
 
 # db = Database()
 
-# user1 = ("Ben", "Zephos")
-# user_id1 = db.create_user(user1)
-
-# score1 = (user_id1, 100)
-# db.submit_score(score1)
-
-# user2 = ("John", "Jonnhy123")
+# user2 = ("Anonymous", "Guest")
 # user_id2 = db.create_user(user2)
 
 # score2 = (user_id2, 17)
@@ -242,9 +274,11 @@ class Database():
 # score3 = (user_id3, 1)
 # db.submit_score(score3)
 
-#db.purge()
+# db.purge()
 
 # leaderboard = db.get_leaderboard()
 # print(leaderboard)
 
 # db.get_score(user_id1)
+
+# db.get_id("Guest")
