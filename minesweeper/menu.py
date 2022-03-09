@@ -3,8 +3,15 @@ import pygame_menu as pgm
 from config import *
 import datetime
 import random
+import database
 
 print("\033c")
+
+
+db = database.Database()
+global user_id
+user = ("Ben", "Zephos")
+user_id = db.create_user(user)
 
 resolution = 720
 
@@ -104,6 +111,7 @@ class MinesweeperApp(object):
     _unknownTileCount: int
     _timer: int
     _flagCount: int
+    _difficultyNum: int
     _difficultyName: str
 
     def __init__(self):
@@ -112,7 +120,8 @@ class MinesweeperApp(object):
         self._playing = True
         self._finished = False
         self._timer = 0
-        self.difficulty_select(None, 1)
+        self._difficultyNum = 1
+        self.difficulty_select(None, self._difficultyNum)
         self.setup_menus()
         self.setup_grid()
         self._unknownTileCount=self._gridWidth*self._gridHeight
@@ -142,17 +151,18 @@ class MinesweeperApp(object):
 
         set_constant(self._tileSize)
         self._unknownTileCount = self._gridWidth*self._gridHeight
-        self._playing = True
-        self._timer = 0
         self._gamestart = False
+        self._playing = True
+        self._finished = False
+        self._timer = 0
         self._flagCount = self._mineCount
+        self._difficultyNum = value
         screen.fill(COLOUR_BORDER)
         self.setup_menus()
         self.setup_grid()
 
-    def open_link(*args) -> None:
-        link: "pgm.widgets.MenuLink" = args[-1]
-        link.open()
+    def exit_menu(self):
+        self.difficulty_select(None, self._difficultyNum)
 
     def setup_menus(self):
 
@@ -232,8 +242,8 @@ class MinesweeperApp(object):
 
         btn = self._prompt.add.button(
             " ",
-            self.__init__,
-            button_id="settings_back",
+            self.exit_menu,
+            button_id="prompt_back",
             align=pgm.locals.ALIGN_CENTER,
             float=True,
             font_color=COLOUR_WHITE,
@@ -246,7 +256,7 @@ class MinesweeperApp(object):
 
         btn = self._settings.add.button(
             " ",
-            self.__init__,
+            self.exit_menu,
             button_id="settings_back",
             align=pgm.locals.ALIGN_CENTER,
             float=True,
@@ -304,7 +314,11 @@ class MinesweeperApp(object):
     def prompt(self, result:bool):
         self._playing = False
         score="{:03d}".format(self._timer)
-        highscore="{:03d}".format(000)
+        
+        highscoreFormat = (user_id, int(score))
+        db.submit_score(highscoreFormat)
+
+        highscore="{:03d}".format(db.get_score(user_id))
 
         if result == True:
             self._finished = True
