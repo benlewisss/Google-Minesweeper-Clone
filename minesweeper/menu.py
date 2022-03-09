@@ -316,7 +316,8 @@ class MinesweeperApp(object):
         score="{:03d}".format(self._timer)
         
         highscoreFormat = (user_id, int(score))
-        db.submit_score(highscoreFormat)
+        if result == True:
+            db.submit_score(highscoreFormat)
 
         highscore="{:03d}".format(db.get_score(user_id))
 

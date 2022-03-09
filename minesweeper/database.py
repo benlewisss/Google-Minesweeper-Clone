@@ -89,7 +89,7 @@ class Database():
         c.execute("SELECT * FROM scores WHERE user_id=?", (results[0],))
         exist = c.fetchone()
         if exist:
-            if results[1] < exist[2]:
+            if (results[1] < exist[2]) or (exist[2] == 0):
                 c.execute("DELETE FROM scores WHERE user_id=?", (results[0],))
                 sql = """ INSERT INTO scores(user_id,score) VALUES(?,?)"""
                 c.execute(sql, results)
