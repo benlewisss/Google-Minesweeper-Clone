@@ -1,5 +1,6 @@
 import pygame as pg
 import pygame_menu as pgm
+import config
 from config import *
 import datetime
 import random
@@ -23,6 +24,10 @@ mineColours = [MINE_BLUE, MINE_CYAN, MINE_MAGENTA, MINE_ORANGE, MINE_PURPLE, MIN
 numbers = [NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4]
 
 settingsMenuImage = pgm.baseimage.BaseImage(
+    image_path=SETTINGSMENU,
+    drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+
+leaderboardMenuImage = pgm.baseimage.BaseImage(
     image_path=SETTINGSMENU,
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
@@ -116,6 +121,7 @@ class MinesweeperApp(object):
     _gamestart: bool
     _menu: "pgm.Menu"
     _settings: "pgm.Menu"
+    _leaderboard: "pgm.Menu"
     _prompt: "pgm.Menu"
     _gridWidth: int
     _gridHeight: int
@@ -213,6 +219,18 @@ class MinesweeperApp(object):
         settingsTheme.widget_font_size = 40
         settingsTheme.widget_padding = 0
 
+        # Configure leaderboardTheme
+        leaderboardTheme = pgm.Theme()
+        leaderboardTheme.background_color = leaderboardMenuImage
+        leaderboardTheme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
+        leaderboardTheme.title_close_button = False
+        leaderboardTheme.title_font_size = 40
+        leaderboardTheme.widget_alignment = pgm.locals.ALIGN_CENTER
+        leaderboardTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
+        leaderboardTheme.widget_font_color = (100, 12, 14)
+        leaderboardTheme.widget_font_size = 40
+        leaderboardTheme.widget_padding = 0
+
         # Configure promptTheme
         promptTheme = pgm.Theme()
         promptTheme.background_color = promptImage
@@ -239,6 +257,18 @@ class MinesweeperApp(object):
         )
 
         self._settings = pgm.Menu(
+            menu_id="settings_menu_instance",
+            width=320, 
+            height=534,
+            columns=1,
+            rows=10,
+            mouse_motion_selection=True,
+            position=(200, 110, False),
+            theme=settingsTheme,
+            title=""
+        )
+
+        self._leaderboard = pgm.Menu(
             menu_id="settings_menu_instance",
             width=320, 
             height=534,
@@ -290,6 +320,20 @@ class MinesweeperApp(object):
         )
         btn.translate(-180,-250)
 
+        btn = self._leaderboard.add.button(
+            " ",
+            self.exit_menu,
+            button_id="leaderboard_button",
+            align=pgm.locals.ALIGN_CENTER,
+            float=True,
+            font_color=COLOUR_WHITE,
+            font_size=35,
+            cursor=pgm.locals.CURSOR_HAND,
+            selection_effect=pgm.widgets.NoneSelection(),
+            margin=(40,40)
+        )
+        btn.translate(-180,-270)
+
         btn = self._settings.add.dropselect(
             title="",
             items=[("Easy", 0),
@@ -334,6 +378,19 @@ class MinesweeperApp(object):
         )
         btn.translate(0,-110)
         
+        btn = self._menu.add.button(
+            "   ",
+            self._leaderboard,
+            button_id="leaderboardButton",
+            align=pgm.locals.ALIGN_RIGHT,
+            float=True,
+            font_size=40,
+            cursor=pg.SYSTEM_CURSOR_HAND,
+            selection_effect=pgm.widgets.NoneSelection(),
+            margin=(0, 0)
+        )
+        btn.translate(-40,0)
+
         btn = self._menu.add.button(
             "  ",
             self._settings,
@@ -420,6 +477,10 @@ class MinesweeperApp(object):
         if self._finished == True:
             self._prompt.update(events)
             self._prompt.draw(screen)
+
+        certificateImg = pg.image.load(CERTIFICATEICON)
+        #certificateImgRect = certificateImg.get_rect(center=())
+        screen.blit(certificateImg, (620,16))
 
         flagImg = pg.image.load(FLAGICON)
         flagImg = pg.transform.smoothscale(flagImg, (50, 50))

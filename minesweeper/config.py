@@ -16,6 +16,7 @@ SOUNDICON = "assets/icons/sound_on.png"
 MUTEICON = "assets/icons/sound_off.png"
 EXITICON = "assets/icons/exit.png"
 SETTINGSICON = "assets/icons/settings.png"
+CERTIFICATEICON = "assets/icons/certificate.png"
 SETTINGSMENU = "assets/elements/menu_settings_720.png"
 PROMPT = "assets/elements/prompt_template.png"
 
