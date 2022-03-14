@@ -10,8 +10,10 @@ print("\033c")
 
 USER_ID=1
 
-db = database.Database()
-db.show_all_data()
+db = database.Database("data/database.sqlite")
+print("\nAll Data:")
+db.get_all_data()
+print("\n")
 
 resolution = 720
 
@@ -41,11 +43,7 @@ def tilesize_set_constant(tileSize):
 
 def user_set_constant(username):
     global USER_ID
-    user = ("", username)
-    db.create_user(user)
-    USER_ID = db.get_id(username)
-    #print(USER_ID)
-
+    USER_ID = db.create_user(username)
 
 def check_name_test(value: str):
     """
@@ -372,7 +370,7 @@ class MinesweeperApp(object):
         btn.translate(0,15)
 
         btn = self._settings.add.label(
-            db.get_username(USER_ID), 
+            db.get_user(USER_ID)[1], 
             font_name=TEXT_FONT, 
             font_size=15
         )
@@ -417,13 +415,11 @@ class MinesweeperApp(object):
     def prompt(self, result:bool):
         self._playing = False
         score="{:03d}".format(self._timer)
-        
-        highscoreFormatted = (USER_ID, int(score))
 
-        if result == True:
-            db.submit_score(highscoreFormatted)
+        if result:
+            db.submit_score(int(score), self._difficultyNum, USER_ID)
 
-        highscore="{:03d}".format(db.get_score(USER_ID))
+        highscore="{:03d}".format(db.get_highscore(USER_ID)[0])
 
         if result == True:
             self._finished = True

@@ -1,284 +1,224 @@
-# SQL Leaderboard Database
-
 import sqlite3
+from sqlite3 import Error
+import datetime
+import random
+
+print("\033c")
+
+def take_score(elem):
+    return elem[1]
 
 class Database():
-    def __init__(self):
+	def __init__(self, db_file):
+		self.timestamp = datetime.datetime.now()
+		self.db_file = db_file
+		self.conn = self.initiate_connection()
+		if self.conn is not None:
+			self.create_tables()
+		else:
+			print("ERROR: Cannot connet to database.")
 
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
+	def initiate_connection(self):
+		# :return: Returns connection object, or None if connection failed
+		# :return_format: return = connection
+		connection = None
+		try:
+			connection = sqlite3.connect(self.db_file)
+			return connection
+		except Error as err:
+			print("connection error:")
+			print(err)
 
-        # Create Cursor
-        c = conn.cursor()
+		return connection
 
-        # Create Tables
-        c.execute("""CREATE TABLE IF NOT EXISTS users(
-            id integer NOT NULL PRIMARY KEY,
-            name text NOT NULL,
-            username text NOT NULL)
-            """)
+	def create_tables(self):
+		conn = self.conn
+		
+		# SQL to create the users table
+		sql_users_table = """CREATE TABLE IF NOT EXISTS users(
+							id integer NOT NULL PRIMARY KEY,
+							username text NOT NULL,
+							join_date timestamp NOT NULL)
+							"""
 
-        c.execute("""CREATE TABLE IF NOT EXISTS scores(
-            user_id integer NOT NULL PRIMARY KEY,
-            score integer NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id))
-            """)
+		# SQL to create the scores table
+		sql_scores_table = """CREATE TABLE IF NOT EXISTS scores(
+							id integer NOT NULL PRIMARY KEY,
+							score integer NOT NULL,
+							date timestamp NOT NULL,
+							difficulty integer NOT NULL,
+							user_id integer NOT NULL,
+							FOREIGN KEY (user_id) REFERENCES users (id))
+							"""
+		try:
+			cur = conn.cursor()
+			cur.execute(sql_users_table)
+			cur.execute(sql_scores_table)
+		except Error as err:
+			print("create_tables error:")
+			print(err)
 
-        # Commit Changes
-        conn.commit()
+	def create_user(self, username):
+		# :param: Username of the user creating/logging into an account (users.username)
+		# :return: ID of the user (users.id)
+		# :return_format: return = id
 
-        # Close Connection
-        conn.close()
+		conn = self.conn
 
-    def entry_check(self, username):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-        
-        # Execute Query
-        c.execute("SELECT * FROM users WHERE username=?", (username,))
-        results = c.fetchone()
-        if results:
-            result = True
-        else:
-            result = False
+		cur = conn.cursor()
+
+		sql_insert_user = """ INSERT INTO users(username, join_date)
+				VALUES(?,?) """
+		user_tuple = (username, self.timestamp)
+		
+		cur.execute("SELECT * FROM users WHERE username=?", (username,))
+		if cur.fetchall():
+			pass
+		else:
+			cur.execute(sql_insert_user, user_tuple)
+			
+		conn.commit()
+
+		cur.execute("SELECT * FROM users WHERE username=?", (username,))
+		return cur.fetchone()[0]
+		
+
+	def submit_score(self, score, difficulty, user_id):
+		# :param: Score of the entry to be submitted @database.scores.score
+		# :param: ID of the user submitting the score @database.users.id
+		# :return: Either None if the score is 0, or the ID of the score entry. 
+		# :return_format: return = id
+
+		conn = self.conn
+
+		cur = conn.cursor()
+
+		sql = """ INSERT INTO scores(score, difficulty, date, user_id)
+				VALUES(?,?,?,?) """
+
+		if score >= 1:
+			user_tuple = (score, difficulty, self.timestamp, user_id)
+			cur.execute(sql, user_tuple)
+			conn.commit()
+			return cur.lastrowid
+		else:
+			return None
+
+	def get_all_data(self):
+		conn = self.conn
+
+		cur = conn.cursor()
+
+		sql_users_query = """ SELECT * FROM users """
+		sql_scores_query = """ SELECT * FROM scores ORDER BY user_id ASC"""
+		
+		cur.execute(sql_users_query)
+		records = cur.fetchall()
+		print("Users:")
+		# Print Records
+		for record in records:
+			print(record)
+
+		cur.execute(sql_scores_query)
+		records = cur.fetchall()
+		print("\nScores:")
+		# Print Records
+		for record in records:
+			print(record)  
+
+	def get_leaderboard(self):
+		# :return: Ordererd list containing sub-lists ordered by score. Index 0 is the highest score.
+		# :return_format: [[username, highscore, difficulty, timestamp], [username, highscore, difficulty, timestamp], etc...]
+		conn = self.conn
+
+		cur = conn.cursor()
+
+		leaderboard = []
+
+		sql_users_query = """ SELECT * FROM users """
+		
+		cur.execute(sql_users_query)
+		users = cur.fetchall()
+		for user in users:
+			cur.execute("SELECT MIN(score), difficulty, date FROM scores WHERE user_id=?", (user[0],))
+			result = cur.fetchone()
+			entry = [user[1], result[0], result[1], result[2]]
+
+			leaderboard.append(entry)
+
+		leaderboard.sort(key=take_score)
+		return leaderboard
+
+	def get_highscore(self, user_id):
+		# :param: ID of the user retrieving their highscore SQL@users.id
+		# :return: Tuple containing the highscore and the timestamp when it was achieved.
+		# :return_format: return = (score, difficulty, timestamp)
+
+		conn = self.conn
+
+		cur = conn.cursor()
+
+		cur.execute("SELECT MIN(score), difficulty, date FROM scores WHERE user_id=?", (user_id,))
+		result = cur.fetchone()
+		return result
+
+	def get_user(self, user_id):
+		# :param: ID of the user retrieving their highscore SQL@users.id
+		# :return: Tuple containing data relating to a user.
+		# :return_format: return = (id, username, join_date)
+
+		conn = self.conn
+
+		cur = conn.cursor()
+
+		cur.execute("SELECT * FROM users WHERE id=?", (user_id,))
+		result = cur.fetchone() 
+		return result
+
+	def purge_data(self):
+		conn = self.conn
+
+		# Define Queries
+		sql_delete_users = """DELETE FROM users"""
+		sql_delete_scores = """DELETE FROM scores"""
+
+		try:
+			cur = conn.cursor()
+			cur.execute(sql_delete_users)
+			cur.execute(sql_delete_scores)
+		except Error as err:
+			print("purge_data error:")
+			print(err)
+		
+		conn.commit()
+		
+		
 
 
-        # Commit Changes
-        conn.commit()
+# db = Database("data/database.sqlite")
 
-        # Close Connection
-        conn.close()
+# print(db.get_user(3))
 
-        return result
+# db.purge_data()
 
-    def create_user(self, user):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
+# userID1 = db.create_user("BenLewis1")
+# print("UserID:",userID1)
+# db.submit_score(random.randint(5, 150), 1, userID1)
+# db.get_highscore(userID1)
 
-        if not self.entry_check(user[1]):
-            # Define Query
-            sql = """ INSERT INTO users(name,username) VALUES(?,?) """
-            
-            # Execute Query
-            c.execute(sql, user)
+# userID2 = db.create_user("JohnnyMyBoy")
+# print("UserID:",userID2)
+# db.submit_score(random.randint(5, 150), 2, userID2)
+# db.get_highscore(userID2)
 
+# userID3 = db.create_user("Skillplayer99")
+# print("UserID:",userID3)
+# db.submit_score(random.randint(5, 150), 1, userID3)
+# print(db.get_highscore(userID3))
 
-        c.execute("SELECT * FROM users WHERE username=?", (user[1],))
-        results = c.fetchone()
+# print("\nAll Data:")
+# db.get_all_data()
 
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-        return results[0]
-
-    def submit_score(self, results):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-
-        c.execute("SELECT * FROM scores WHERE user_id=?", (results[0],))
-        exist = c.fetchone()
-        if exist:
-            if (results[1] < exist[2]) or (exist[2] == 0):
-                c.execute("DELETE FROM scores WHERE user_id=?", (results[0],))
-                sql = """ INSERT INTO scores(user_id,score) VALUES(?,?)"""
-                c.execute(sql, results)
-
-        else:
-            sql = """ INSERT INTO scores(user_id,score) VALUES(?,?)"""
-            c.execute(sql, results)
-        
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-    def get_score(self, user_id):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-        
-        # Execute Query
-        c.execute("SELECT * FROM scores WHERE user_id=?", (user_id,))
-        record = c.fetchone()
-        if record == None:
-            record = 0
-        else:
-            record = record[2]
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-        return record
-
-    def get_id(self, username):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-        
-        # Execute Query
-        c.execute("SELECT * FROM users WHERE username=?", (username,))
-        record = c.fetchone()[0]
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-        return record
-
-    def get_username(self, user_id):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-        
-        # Execute Query
-        c.execute("SELECT * FROM users WHERE id=?", (user_id,))
-        record = c.fetchone()[2]
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-        return record
-
-    def get_leaderboard(self):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-
-        # Define Query
-        sql = """ SELECT * FROM scores ORDER BY score ASC LIMIT 10"""
-
-        leaderboard = []
-        
-        # Execute Query
-        c.execute(sql)
-        records = c.fetchall()
-
-        # Print Records
-        for record in records:
-            c.execute("SELECT * FROM users WHERE id=?", (record[1],))
-            user = c.fetchone()
-            username = user[2]
-            highscore = record[2]
-            leaderboard.append([username, highscore])
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-        
-        return leaderboard
-
-        
-    def show_all_data(self):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-
-        # Define Query
-        sql = """ SELECT * FROM scores ORDER BY score ASC LIMIT 10"""
-        
-        # Execute Query
-        c.execute(sql)
-        records = c.fetchall()
-
-        # Print Records
-        for record in records:
-            c.execute("SELECT * FROM users WHERE id=?", (record[1],))
-            user = c.fetchone()
-            print("Username: {}".format(user[2]))
-            print("Highscore: {}\n".format(record[2]))
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-    def purge_users(self):
-
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-
-        # Define Query
-        sql = """ DELETE FROM users """
-        
-        # Execute Query
-        c.execute(sql)
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-    def purge_scores(self):
-        # Creates/Connects to Database
-        conn = sqlite3.connect("data/database.db")
-        # Create Cursor
-        c = conn.cursor()
-
-        # Define Query
-        sql = """ DELETE FROM scores """
-        
-        # Execute Query
-        c.execute(sql)
-
-        # Commit Changes
-        conn.commit()
-
-        # Close Connection
-        conn.close()
-
-    def purge(self):
-        self.purge_scores()
-        self.purge_users()
-
-# db = Database()
-
-# user2 = ("Anonymous", "Guest")
-# user_id2 = db.create_user(user2)
-
-# score2 = (user_id2, 17)
-# db.submit_score(score2)
-
-# user3 = ("Bob", "BobSlayer3000")
-# user_id3 = db.create_user(user3)
-
-# score3 = (user_id3, 1)
-# db.submit_score(score3)
-
-# db.purge()
-
+# print("\nLeaderboard:")
 # leaderboard = db.get_leaderboard()
 # print(leaderboard)
-
-# db.get_score(user_id1)
-
-# db.get_id("Guest")
