@@ -20,6 +20,7 @@ os.system("cls")
 USER_ID=1
 
 db = database.Database("data/database.sqlite")
+db.create_user("Guest")
 
 print("\nAll Data:")
 db.get_all_data()
@@ -152,6 +153,7 @@ class MinesweeperApp(object):
         self._finished = False
         self._timer = 0
         self._difficultyNum = 1
+        self.leaderboard = db.get_leaderboard()
         self.difficulty_select(None, self._difficultyNum)
         self.setup_menus()
         self.setup_grid()
@@ -188,6 +190,7 @@ class MinesweeperApp(object):
         self._timer = 0
         self._flagCount = self._mineCount
         self._difficultyNum = value
+        self.leaderboard = db.get_leaderboard()
         screen.fill(COLOUR_BORDER)
         self.setup_menus()
         self.setup_grid()
@@ -238,7 +241,7 @@ class MinesweeperApp(object):
         leaderboardTheme.title_font_size = 40
         leaderboardTheme.widget_alignment = pgm.locals.ALIGN_CENTER
         leaderboardTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
-        leaderboardTheme.widget_font_color = (100, 12, 14)
+        leaderboardTheme.widget_font_color = COLOUR_BLACK
         leaderboardTheme.widget_font_size = 40
         leaderboardTheme.widget_padding = 0
 
@@ -343,7 +346,7 @@ class MinesweeperApp(object):
             selection_effect=pgm.widgets.NoneSelection(),
             margin=(40,40)
         )
-        btn.translate(-286,-270)
+        btn.translate(-286,-238)
 
         btn = self._settings.add.dropselect(
             title="",
@@ -425,21 +428,53 @@ class MinesweeperApp(object):
             scale=(0.06, 0.06)
         )
 
-        place1score = leaderboard[0][0][1]
-        place1name = db.get_user(leaderboard[0][0][0])[1]
-        place2score = leaderboard[0][1][1]
-        place2name = db.get_user(leaderboard[0][1][0])[1]
-        place3score = leaderboard[0][2][1]
-        place3name = db.get_user(leaderboard[0][2][0])[1]
+        easy_place1score = "  " + "{:03d}".format(self.leaderboard[0][0][1]) + "  "
+        easy_place1name = "  " + db.get_user(self.leaderboard[0][0][0])[1].ljust(40)
+        easy_place2score = "  " + "{:03d}".format(self.leaderboard[0][1][1]) + "  "
+        easy_place2name = "  " + db.get_user(self.leaderboard[0][1][0])[1].ljust(40)
+        easy_place3score = "  " + "{:03d}".format(self.leaderboard[0][2][1]) + "  "
+        easy_place3name = "  " + db.get_user(self.leaderboard[0][2][0])[1].ljust(40)
 
-        easy_table = self._leaderboard.add.table(font_size=20)
-        easy_table.default_cell_padding = 5
-        easy_table.default_cell_align = pgm.locals.ALIGN_CENTER
+        easy_table = self._leaderboard.add.table(font_size=20, float=True)
+        easy_table.default_cell_padding = 7
+        easy_table.default_cell_align = pgm.locals.ALIGN_LEFT
         easy_table.default_row_background_color = (0,0,0,0)
-        easy_table.add_row([place1score, place1name], cell_font=TEXT_FONT)
-        easy_table.add_row([place2score, place2name], cell_font=TEXT_FONT)
-        easy_table.add_row([place3score, place3name], cell_font=TEXT_FONT)
-        easy_table.translate(-100,-190)
+        easy_table.add_row([easy_place1score, easy_place1name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        easy_table.add_row([easy_place2score, easy_place2name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        easy_table.add_row([easy_place3score, easy_place3name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        easy_table.translate(8,-157)
+
+        medium_place1score = "  " + "{:03d}".format(self.leaderboard[1][0][1]) + "  "
+        medium_place1name = "  " + db.get_user(self.leaderboard[1][0][0])[1].ljust(40)
+        medium_place2score = "  " + "{:03d}".format(self.leaderboard[1][1][1]) + "  "
+        medium_place2name = "  " + db.get_user(self.leaderboard[1][1][0])[1].ljust(40)
+        medium_place3score = "  " + "{:03d}".format(self.leaderboard[1][2][1]) + "  "
+        medium_place3name = "  " + db.get_user(self.leaderboard[1][2][0])[1].ljust(40)
+
+        medium_table = self._leaderboard.add.table(font_size=20, float=True)
+        medium_table.default_cell_padding = 7
+        medium_table.default_cell_align = pgm.locals.ALIGN_LEFT
+        medium_table.default_row_background_color = (0,0,0,0)
+        medium_table.add_row([medium_place1score, medium_place1name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        medium_table.add_row([medium_place2score, medium_place2name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        medium_table.add_row([medium_place3score, medium_place3name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        medium_table.translate(8,-17)
+
+        hard_place1score = "  " + "{:03d}".format(self.leaderboard[2][0][1]) + "  "
+        hard_place1name = "  " + db.get_user(self.leaderboard[2][0][0])[1].ljust(40)
+        hard_place2score = "  " + "{:03d}".format(self.leaderboard[2][1][1]) + "  "
+        hard_place2name = "  " + db.get_user(self.leaderboard[2][1][0])[1].ljust(40)
+        hard_place3score = "  " + "{:03d}".format(self.leaderboard[2][2][1]) + "  "
+        hard_place3name = "  " + db.get_user(self.leaderboard[2][2][0])[1].ljust(40)
+
+        hard_table = self._leaderboard.add.table(font_size=20, float=True)
+        hard_table.default_cell_padding = 7
+        hard_table.default_cell_align = pgm.locals.ALIGN_LEFT
+        hard_table.default_row_background_color = (0,0,0,0)
+        hard_table.add_row([hard_place1score, hard_place1name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        hard_table.add_row([hard_place2score, hard_place2name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        hard_table.add_row([hard_place3score, hard_place3name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
+        hard_table.translate(8,123)
 
     def prompt(self, result:bool):
         self._playing = False
