@@ -18,6 +18,7 @@ EXITICON = "assets/icons/exit.png"
 SETTINGSICON = "assets/icons/settings.png"
 CERTIFICATEICON = "assets/icons/certificate.png"
 SETTINGSMENU = "assets/elements/menu_settings_720.png"
+LEADERBOARDMENU = "assets/elements/menu_leaderboard_720_full.png"
 PROMPT = "assets/elements/prompt_template.png"
 
 NUMBER_1 = "assets/icons/num_1.png"

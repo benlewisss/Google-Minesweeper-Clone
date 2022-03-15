@@ -1,18 +1,31 @@
-import pygame as pg
-import pygame_menu as pgm
+import os
+
+try:
+    import pygame as pg
+    import pygame_menu as pgm
+except ModuleNotFoundError:
+    os.system("py -m pip install -U pygame --user")
+    os.system("py -m pip install -U pygame_menu --user")
+    import pygame as pg
+    import pygame_menu as pgm
+
 import config
 from config import *
 import datetime
 import random
 import database
 
-print("\033c")
+os.system("cls")
 
 USER_ID=1
 
 db = database.Database("data/database.sqlite")
+
 print("\nAll Data:")
 db.get_all_data()
+print("\nLeaderboard:")
+leaderboard = db.get_leaderboard()
+print(leaderboard)
 print("\n")
 
 resolution = 720
@@ -30,7 +43,7 @@ settingsMenuImage = pgm.baseimage.BaseImage(
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
 leaderboardMenuImage = pgm.baseimage.BaseImage(
-    image_path=SETTINGSMENU,
+    image_path=LEADERBOARDMENU,
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
 promptImage = pgm.baseimage.BaseImage(
@@ -267,14 +280,14 @@ class MinesweeperApp(object):
         )
 
         self._leaderboard = pgm.Menu(
-            menu_id="settings_menu_instance",
-            width=320, 
+            menu_id="leaderboard_menu_instance",
+            width=534, 
             height=534,
             columns=1,
             rows=10,
             mouse_motion_selection=True,
-            position=(200, 110, False),
-            theme=settingsTheme,
+            position=(110, 110, False),
+            theme=leaderboardTheme,
             title=""
         )
 
@@ -321,7 +334,7 @@ class MinesweeperApp(object):
         btn = self._leaderboard.add.button(
             " ",
             self.exit_menu,
-            button_id="leaderboard_button",
+            button_id="leaderboard_back",
             align=pgm.locals.ALIGN_CENTER,
             float=True,
             font_color=COLOUR_WHITE,
@@ -330,7 +343,7 @@ class MinesweeperApp(object):
             selection_effect=pgm.widgets.NoneSelection(),
             margin=(40,40)
         )
-        btn.translate(-180,-270)
+        btn.translate(-286,-270)
 
         btn = self._settings.add.dropselect(
             title="",
@@ -412,6 +425,22 @@ class MinesweeperApp(object):
             scale=(0.06, 0.06)
         )
 
+        place1score = leaderboard[0][0][1]
+        place1name = db.get_user(leaderboard[0][0][0])[1]
+        place2score = leaderboard[0][1][1]
+        place2name = db.get_user(leaderboard[0][1][0])[1]
+        place3score = leaderboard[0][2][1]
+        place3name = db.get_user(leaderboard[0][2][0])[1]
+
+        easy_table = self._leaderboard.add.table(font_size=20)
+        easy_table.default_cell_padding = 5
+        easy_table.default_cell_align = pgm.locals.ALIGN_CENTER
+        easy_table.default_row_background_color = (0,0,0,0)
+        easy_table.add_row([place1score, place1name], cell_font=TEXT_FONT)
+        easy_table.add_row([place2score, place2name], cell_font=TEXT_FONT)
+        easy_table.add_row([place3score, place3name], cell_font=TEXT_FONT)
+        easy_table.translate(-100,-190)
+
     def prompt(self, result:bool):
         self._playing = False
         score="{:03d}".format(self._timer)
@@ -419,7 +448,11 @@ class MinesweeperApp(object):
         if result:
             db.submit_score(int(score), self._difficultyNum, USER_ID)
 
-        highscore="{:03d}".format(db.get_highscore(USER_ID)[0])
+        if db.get_highscore(self._difficultyNum,USER_ID)[0]:
+            print(db.get_highscore(self._difficultyNum,USER_ID))
+            highscore="{:03d}".format(db.get_highscore(self._difficultyNum,USER_ID)[0])
+        else:
+            highscore="{:03d}".format(0)
 
         if result == True:
             self._finished = True
@@ -597,6 +630,8 @@ class MinesweeperApp(object):
             current_menu = self._menu.get_current()
             current_menu_id = current_menu.get_id()
             if current_menu_id == "settings_menu_instance":
+                gridClickable = False
+            if current_menu_id == "leaderboard_menu_instance":
                 gridClickable = False
             if current_menu_id == "home_menu_instance":
                 gridClickable = True

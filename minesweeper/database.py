@@ -3,7 +3,7 @@ from sqlite3 import Error
 import datetime
 import random
 
-print("\033c")
+#print("\033c")
 
 def take_score(elem):
     return elem[1]
@@ -85,7 +85,7 @@ class Database():
 	def submit_score(self, score, difficulty, user_id):
 		# :param: Score of the entry to be submitted @database.scores.score
 		# :param: ID of the user submitting the score @database.users.id
-		# :return: Either None if the score is 0, or the ID of the score entry. 
+		# :return: Either 0 if the score is 0, or the ID of the score entry. 
 		# :return_format: return = id
 
 		conn = self.conn
@@ -149,6 +149,7 @@ class Database():
 		return leaderboard
 
 	def get_highscore(self, difficulty, user_id):
+		# :param: Difficulty of the game to retrieve a highscore for
 		# :param: ID of the user retrieving their highscore SQL@users.id
 		# :return: Tuple containing the highscore and the timestamp when it was achieved.
 		# :return_format: return = (score, difficulty, timestamp)
@@ -194,20 +195,20 @@ class Database():
 		
 
 
-db = Database("data/database.sqlite")
+# db = Database("data/database.sqlite")
 
 # print(db.get_user(3))
 
 # db.purge_data()
 
-# userID1 = db.create_user("Bitch")
+# userID1 = db.create_user("Zephos")
 # print("UserID:",userID1)
-# db.submit_score(2, random.randint(0, 2), userID1)
+# db.submit_score(random.randint(5, 150), random.randint(0, 2), userID1)
 # print("HIGHSCORE:",db.get_highscore(1,userID1))
 
-# userID2 = db.create_user("Desater")
+# userID2 = db.create_user("SkilledMan420")
 # print("UserID:",userID2)
-# db.submit_score(17, random.randint(0, 2), userID2)
+# db.submit_score(random.randint(5, 150), random.randint(0, 2), userID2)
 # print("HIGHSCORE:",db.get_highscore(2,userID2))
 
 # userID3 = db.create_user("Skillplayer99")
@@ -215,13 +216,13 @@ db = Database("data/database.sqlite")
 # db.submit_score(random.randint(5, 150), print(random.randint(0, 2)), userID3)
 # print(db.get_highscore(userID3))
 
-print("\nAll Data:")
-db.get_all_data()
+# print("\nAll Data:")
+# db.get_all_data()
 
-print("\nLeaderboard:")
-leaderboard = db.get_leaderboard()
-print(leaderboard)
+# print("\nLeaderboard:")
+# leaderboard = db.get_leaderboard()
+# print(leaderboard)
 
-print("\nName:")
-specific = db.get_user(leaderboard[1][0][0])[1]
-print(specific)
+# print("\nName:")
+# specific = db.get_user(leaderboard[1][0][0])[1]
+# print(specific)
