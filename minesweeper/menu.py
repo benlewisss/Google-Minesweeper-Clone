@@ -474,12 +474,25 @@ class MinesweeperApp(object):
             scale=(0.06, 0.06)
         )
 
-        easy_place1score = "  " + "{:03d}".format(self.leaderboard[0][0][1]) + "  "
-        easy_place1name = "  " + db.get_user(self.leaderboard[0][0][0])[1].ljust(40)
-        easy_place2score = "  " + "{:03d}".format(self.leaderboard[0][1][1]) + "  "
-        easy_place2name = "  " + db.get_user(self.leaderboard[0][1][0])[1].ljust(40)
-        easy_place3score = "  " + "{:03d}".format(self.leaderboard[0][2][1]) + "  "
-        easy_place3name = "  " + db.get_user(self.leaderboard[0][2][0])[1].ljust(40)
+
+        try:
+            easy_place1score = ("  " + "{:03d}".format(self.leaderboard[0][0][1])) + "  "
+            easy_place1name = "  " + db.get_user(self.leaderboard[0][0][0])[1].ljust(40) 
+        except IndexError:
+            easy_place1score = ""
+            easy_place1name = ""
+        try:
+            easy_place2score = "  " + "{:03d}".format(self.leaderboard[0][1][1]) + "  "
+            easy_place2name = "  " + db.get_user(self.leaderboard[0][1][0])[1].ljust(40) 
+        except IndexError:
+            easy_place2score = ""
+            easy_place2name = ""
+        try:
+            easy_place3score = "  " + "{:03d}".format(self.leaderboard[0][2][1]) + "  " 
+            easy_place3name = "  " + db.get_user(self.leaderboard[0][2][0])[1].ljust(40) 
+        except IndexError:
+            easy_place3score = ""
+            easy_place3name = ""
 
         easy_table = self._leaderboard.add.table(font_size=20, float=True)
         easy_table.default_cell_padding = 7
@@ -490,12 +503,24 @@ class MinesweeperApp(object):
         easy_table.add_row([easy_place3score, easy_place3name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
         easy_table.translate(8,-157)
 
-        medium_place1score = "  " + "{:03d}".format(self.leaderboard[1][0][1]) + "  "
-        medium_place1name = "  " + db.get_user(self.leaderboard[1][0][0])[1].ljust(40)
-        medium_place2score = "  " + "{:03d}".format(self.leaderboard[1][1][1]) + "  "
-        medium_place2name = "  " + db.get_user(self.leaderboard[1][1][0])[1].ljust(40)
-        medium_place3score = "  " + "{:03d}".format(self.leaderboard[1][2][1]) + "  "
-        medium_place3name = "  " + db.get_user(self.leaderboard[1][2][0])[1].ljust(40)
+        try:
+            medium_place1score = "  " + "{:03d}".format(self.leaderboard[1][0][1]) + "  " 
+            medium_place1name = "  " + db.get_user(self.leaderboard[1][0][0])[1].ljust(40) 
+        except IndexError:
+            medium_place1score = ""
+            medium_place1name = ""
+        try:
+            medium_place2score = "  " + "{:03d}".format(self.leaderboard[1][1][1]) + "  " 
+            medium_place2name = "  " + db.get_user(self.leaderboard[1][1][0])[1].ljust(40) 
+        except IndexError:
+            medium_place2score = ""
+            medium_place2name = ""
+        try:
+            medium_place3score = "  " + "{:03d}".format(self.leaderboard[1][2][1]) + "  " 
+            medium_place3name = "  " + db.get_user(self.leaderboard[1][2][0])[1].ljust(40) 
+        except IndexError:
+            medium_place3score = ""
+            medium_place3name = ""
 
         medium_table = self._leaderboard.add.table(font_size=20, float=True)
         medium_table.default_cell_padding = 7
@@ -506,12 +531,24 @@ class MinesweeperApp(object):
         medium_table.add_row([medium_place3score, medium_place3name], cell_font=TEXT_FONT_BOLD, cell_border_width=0)
         medium_table.translate(8,-17)
 
-        hard_place1score = "  " + "{:03d}".format(self.leaderboard[2][0][1]) + "  "
-        hard_place1name = "  " + db.get_user(self.leaderboard[2][0][0])[1].ljust(40)
-        hard_place2score = "  " + "{:03d}".format(self.leaderboard[2][1][1]) + "  "
-        hard_place2name = "  " + db.get_user(self.leaderboard[2][1][0])[1].ljust(40)
-        hard_place3score = "  " + "{:03d}".format(self.leaderboard[2][2][1]) + "  "
-        hard_place3name = "  " + db.get_user(self.leaderboard[2][2][0])[1].ljust(40)
+        try:
+            hard_place1score = "  " + "{:03d}".format(self.leaderboard[2][0][1]) + "  "
+            hard_place1name = "  " + db.get_user(self.leaderboard[2][0][0])[1].ljust(40)
+        except IndexError:
+            hard_place1score = ""
+            hard_place1name = ""
+        try:
+            hard_place2score = "  " + "{:03d}".format(self.leaderboard[2][1][1]) + "  "
+            hard_place2name = "  " + db.get_user(self.leaderboard[2][1][0])[1].ljust(40)
+        except IndexError:
+            hard_place2score = ""
+            hard_place2name = ""
+        try:
+            hard_place3score = "  " + "{:03d}".format(self.leaderboard[2][2][1]) + "  "
+            hard_place3name = "  " + db.get_user(self.leaderboard[2][2][0])[1].ljust(40)
+        except IndexError:
+            hard_place3score = ""
+            hard_place3name = ""
 
         hard_table = self._leaderboard.add.table(font_size=20, float=True)
         hard_table.default_cell_padding = 7
