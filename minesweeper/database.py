@@ -193,7 +193,7 @@ class Database():
 		conn.commit()
 		
 		
-db = Database("data/database.sqlite")
+# db = Database("data/database.sqlite")
 
 # print(db.get_user(3))
 
@@ -217,9 +217,9 @@ db = Database("data/database.sqlite")
 # print("\nAll Data:")
 # db.get_all_data()
 
-print("\nLeaderboard:")
-leaderboard = db.get_leaderboard()
-print(leaderboard)
+# print("\nLeaderboard:")
+# leaderboard = db.get_leaderboard()
+# print(leaderboard)
 
 # print("\nName:")
 # specific = db.get_user(leaderboard[1][0][0])[1]
