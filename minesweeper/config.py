@@ -13,20 +13,20 @@ TEXT_FONT = "assets/fonts/Roboto-Regular.ttf"
 TEXT_FONT_SIZE = 40
 
 TEXT_FONT_BOLD = "assets/fonts/Roboto-Bold.ttf"
-TEXT_FONT_SIZE = 40
+TEXT_FONT_BOLD_SIZE = 40
 
 NUMBER_FONT = "assets/fonts/Roboto-Regular.ttf"
 NUMBER_FONT_SIZE = 60
 
-FLAGICON = "assets/icons/flag.png"
-CLOCKICON = "assets/icons/clock.png"
-SOUNDICON = "assets/icons/sound_on.png"
-MUTEICON = "assets/icons/sound_off.png"
-EXITICON = "assets/icons/exit.png"
-SETTINGSICON = "assets/icons/settings.png"
-CERTIFICATEICON = "assets/icons/certificate.png"
-SETTINGSMENU = "assets/elements/menu_settings_720.png"
-LEADERBOARDMENU = "assets/elements/menu_leaderboard_720_full.png"
+FLAG_ICON = "assets/icons/flag.png"
+CLOCK_ICON = "assets/icons/clock.png"
+SOUND_ICON = "assets/icons/sound_on.png"
+MUTE_ICON = "assets/icons/sound_off.png"
+EXIT_ICON = "assets/icons/exit.png"
+SETTINGS_ICON = "assets/icons/settings.png"
+CERTIFICATE_ICON = "assets/icons/certificate.png"
+SETTINGS_MENU = "assets/elements/menu_settings_720.png"
+LEADERBOARD_MENU = "assets/elements/menu_leaderboard_720_full.png"
 PROMPT = "assets/elements/prompt_template.png"
 
 NUMBER_1 = "assets/icons/num_1.png"
@@ -47,7 +47,7 @@ MINE_YELLOW = "assets/icons/mine_yellow.png"
 # RGB Colour values
 COLOUR_BLACK = (0, 0, 0)
 COLOUR_WHITE = (255, 255, 255)
-COLOUR_DARKBLUE = (52, 79, 200)
+COLOUR_DARK_BLUE = (52, 79, 200)
 COLOUR_BLUE = (74, 192, 253)
 COLOUR_GREEN = (0, 128, 0)
 COLOUR_RED = (210, 4, 45)

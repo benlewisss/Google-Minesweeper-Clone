@@ -41,11 +41,11 @@ numbers = [NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4]
 
 # Creates Pygame-Menu base images that can be used on the menu interfaces
 settingsMenuImage = pgm.baseimage.BaseImage(
-    image_path=SETTINGSMENU,
+    image_path=SETTINGS_MENU,
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
 leaderboardMenuImage = pgm.baseimage.BaseImage(
-    image_path=LEADERBOARDMENU,
+    image_path=LEADERBOARD_MENU,
     drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
 promptImage = pgm.baseimage.BaseImage(
@@ -98,7 +98,7 @@ class Tile(pg.sprite.DirtySprite):
         drawn with any new attributes that have been set.
         """
         if self.flag == True:
-            flagImg = pg.image.load(FLAGICON)
+            flagImg = pg.image.load(FLAG_ICON)
             self.image = pg.transform.smoothscale(flagImg, (TILE_SIZE, TILE_SIZE))
 
         elif (self.clicked == True) and (self.mine == True) and (self.flag == False):
@@ -465,7 +465,7 @@ class MinesweeperApp(object):
         btn.translate(2,0)
 
         self._menu.add.image(
-            image_path=SETTINGSICON,
+            image_path=SETTINGS_ICON,
             image_id="settingsIcon",
             margin=(40,40),
             align=pgm.locals.ALIGN_LEFT,
@@ -636,11 +636,11 @@ class MinesweeperApp(object):
             self._prompt.update(events)
             self._prompt.draw(screen)
 
-        certificateImg = pg.image.load(CERTIFICATEICON)
+        certificateImg = pg.image.load(CERTIFICATE_ICON)
         #certificateImgRect = certificateImg.get_rect(center=())
         screen.blit(certificateImg, (620,16))
 
-        flagImg = pg.image.load(FLAGICON)
+        flagImg = pg.image.load(FLAG_ICON)
         flagImg = pg.transform.smoothscale(flagImg, (50, 50))
         flagImgRect = flagImg.get_rect(center=((TILE_SIZE*self._gridWidth)//2 - 120, TAB_SIZE//2))
         screen.blit(flagImg, flagImgRect)
@@ -649,7 +649,7 @@ class MinesweeperApp(object):
         flagCountRect = flagCount.get_rect(midleft=((TILE_SIZE*self._gridWidth)//2 - 85, TAB_SIZE//2))
         screen.blit(flagCount, flagCountRect)
         
-        clockImg = pg.image.load(CLOCKICON)
+        clockImg = pg.image.load(CLOCK_ICON)
         clockImg = pg.transform.smoothscale(clockImg, (50, 50))
         clockImgRect = clockImg.get_rect(center=((TILE_SIZE*self._gridWidth)//2 + 90, TAB_SIZE//2))
         screen.blit(clockImg, clockImgRect)
