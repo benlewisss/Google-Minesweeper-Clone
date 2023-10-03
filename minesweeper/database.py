@@ -18,6 +18,9 @@ class Database:
 
         Args:
             db_file (str): The path to the SQLite database file.
+
+        Returns:
+            None
         """
         self.db_file = db_file
         self.conn = self.initiate_connection()
@@ -26,6 +29,9 @@ class Database:
     def initiate_connection(self):
         """
         Establishes a database connection.
+
+        Args:
+            None
 
         Returns:
             sqlite3.Connection or None: The database connection or None if connection failed.
@@ -40,6 +46,12 @@ class Database:
     def create_tables(self):
         """
         Creates 'users' and 'scores' tables if they don't exist in the database.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         conn = self.conn
         sql_users_table = """CREATE TABLE IF NOT EXISTS users(
@@ -110,6 +122,12 @@ class Database:
     def get_all_data(self):
         """
         Retrieves and prints all user and score data from the database.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         conn = self.conn
         cur = conn.cursor()
@@ -129,6 +147,9 @@ class Database:
     def get_leaderboard(self):
         """
         Retrieves the top 3 scores for each difficulty level from the database.
+
+        Args:
+            None
 
         Returns:
             list: A list of lists, where each inner list contains user information, highscore, difficulty, and timestamp.
@@ -181,6 +202,12 @@ class Database:
     def purge_data(self):
         """
         Deletes all user and score data from the database.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         conn = self.conn
         sql_delete_users = """DELETE FROM users"""

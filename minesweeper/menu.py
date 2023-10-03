@@ -5,12 +5,10 @@ import pygame_menu as pgm
 from config import *
 import database
 
-"""
-If PyGame cannot be imported, install using the following PIP commands:
+# If PyGame cannot be imported, install using the following PIP commands:
 
-> py -m pip install -U pygame --user
-> py -m pip install -U pygame_menu --user
-"""
+# > py -m pip install -U pygame --user
+# > py -m pip install -U pygame_menu --user
 
 # Clear the terminal for debugging purposes
 os.system("cls")
@@ -88,28 +86,29 @@ class Tile(pg.sprite.DirtySprite):
         
     def draw(self):
         """
-        This function checks the attributes of the tile and draws them accordingly.
-        This function is called whenever the update attribute is True, meaning it is
-        not drawn if it does not need to be. When it does need to be updated, it is 
-        drawn with any new attributes that have been set.
+        Draw the tile on the screen based on its attributes.
+
+        This method updates and draws the tile based on its current state,
+        including whether it's flagged, clicked, contains a mine, or shows
+        a number. The drawing is optimized to avoid unnecessary operations.
+
+        Returns:
+            None
         """
-        if self.flag == True:
-            flagImg = pg.image.load(FLAG_ICON)
-            self.image = pg.transform.smoothscale(flagImg, (TILE_SIZE, TILE_SIZE))
-
-        elif (self.clicked == True) and (self.mine == True) and (self.flag == False):
-            mineImg = pg.image.load(self.mineColour)
-            self.image = pg.transform.smoothscale(mineImg, (TILE_SIZE, TILE_SIZE))
-
+        if self.flag:
+            flag_img = pg.image.load(FLAG_ICON)
+            self.image = pg.transform.smoothscale(flag_img, (TILE_SIZE, TILE_SIZE))
+        elif self.clicked and self.mine and not self.flag:
+            mine_img = pg.image.load(self.mineColour)
+            self.image = pg.transform.smoothscale(mine_img, (TILE_SIZE, TILE_SIZE))
         else:
-            if self.clicked == True:
-                if ((self.gridY % 2 == 0) ^ (self.gridX % 2 == 0)):
+            if self.clicked:
+                if (self.gridY % 2 == 0) ^ (self.gridX % 2 == 0):
                     colour = TILE_BROWN1
                 else:
                     colour = TILE_BROWN2
-
-            elif self.clicked == False:
-                if ((self.gridY % 2 == 0) ^ (self.gridX % 2 == 0)):
+            else:
+                if (self.gridY % 2 == 0) ^ (self.gridX % 2 == 0):
                     colour = TILE_GREEN2
                 else:
                     colour = TILE_GREEN1
@@ -120,18 +119,10 @@ class Tile(pg.sprite.DirtySprite):
         self.image.get_rect(topleft=self.pixelPosition)
         screen.blit(self.image, self.pixelPosition)
 
-        if (self.mine == False) and (self.flag == False) and (self.clicked == True) and (self.count > 0):
-            if self.count == 1:
-             index = 0
-            elif self.count == 2:
-             index = 1
-            elif self.count == 3:
-             index = 2
-            elif self.count == 4:
-             index = 3
-
-            numImg = pg.image.load(numbers[index])
-            self.image = pg.transform.scale(numImg, (TILE_SIZE, TILE_SIZE))
+        if not self.mine and not self.flag and self.clicked and self.count > 0:
+            index = self.count - 1 if 1 <= self.count <= 4 else 0
+            num_img = pg.image.load(numbers[index])
+            self.image = pg.transform.scale(num_img, (TILE_SIZE, TILE_SIZE))
             self.image.get_rect(topleft=self.pixelPosition)
             screen.blit(self.image, self.pixelPosition)
 
@@ -164,34 +155,32 @@ class MinesweeperApp(object):
 
     def difficulty_select(self, item: tuple, value: int):
         """
-        This function re-initiates the game seperately from the __init__ function, as it 
-        updates some main attribute constants whenever the difficulty is changed.
-        :param item: None type item that accepts an unused tuple from the text-input
-        :param value: The value representing the difficulty selected
+        Re-initializes the game with new difficulty settings.
+
+        This method updates main attribute constants when the difficulty is changed,
+        such as grid size, mine count, tile size, and others. It also resets game
+        attributes and reconfigures the interface accordingly.
+
+        Args:
+            item (tuple): An unused tuple from the text-input.
+            value (int): The value representing the selected difficulty:
+                        - 0: EASY
+                        - 1: MEDIUM
+                        - 2: HARD
+
+        Returns:
+            None
         """
-        if value == 0:
-            self._difficultyName = "EASY"
-            self._gridWidth = 10
-            self._gridHeight = 8
-            self._mineCount = 10
-            self._tileSize = int(RESOLUTION/10)
+        difficulties = [
+            ("EASY", 10, 8, 10, RESOLUTION // 10),
+            ("MEDIUM", 18, 14, 40, RESOLUTION // 18),
+            ("HARD", 24, 20, 99, RESOLUTION // 24)
+        ]
 
-        elif value == 1:
-            self._difficultyName = "MEDIUM"
-            self._gridWidth = 18
-            self._gridHeight = 14
-            self._mineCount = 40
-            self._tileSize = int(RESOLUTION/18)
-
-        elif value == 2:
-            self._difficultyName = "HARD"
-            self._gridWidth = 24
-            self._gridHeight = 20
-            self._mineCount = 99
-            self._tileSize = int(RESOLUTION/24)
-
+        self._difficultyName, self._gridWidth, self._gridHeight, self._mineCount, self._tileSize = difficulties[value]
+        
         tilesize_set_constant(self._tileSize)
-        self._unknownTileCount = self._gridWidth*self._gridHeight
+        self._unknownTileCount = self._gridWidth * self._gridHeight
         self._gamestart = False
         self._playing = True
         self._finished = False
@@ -206,16 +195,33 @@ class MinesweeperApp(object):
 
     def exit_menu(self):
         """
-        This function simply exits a menu without requiring any new attributes;
-        for example when a menu is exited without changing any settings.
+        Exits the current menu without making any changes.
+
+        This method allows the user to exit a menu without applying any changes to
+        the game settings. It calls the `difficulty_select` method with the current
+        difficulty value to ensure no modifications are made.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         self.difficulty_select(None, self._difficultyNum)
 
 
     def check_name_test(self, value: str):
         """
-        This function simply updates the global value of the current user.
-        :param value: The widget text-input value
+        Update the current user's global value and reinitialize the game.
+
+        This method takes a new user name as input, updates the global value of the
+        current user, and then reinitializes the game with the new user settings.
+
+        Args:
+            value (str): The new user name.
+
+        Returns:
+            None
         """
         user_set_constant(value)
         self.__init__()
@@ -223,63 +229,66 @@ class MinesweeperApp(object):
 
     def setup_menus(self):
         """
-        This function handles most the interface elements and formatting. It is
-        responsible for the settings menu, the tab-bar (not the timer or flags),
-        the leaderboard, and the prompts at the end of the game.
-        The themes assign default values for the look of each menu.
-        The menu functions use the themes and are assigned different elements.
-        Buttons and interactable elements are then added to the menus and their
-        relating functions are used.
-        """
+        Set up the game menus, interface elements, and formatting.
 
-        # Configure homeTheme 
-        homeTheme = pgm.Theme()
-        homeTheme.background_color = COLOUR_BORDER
-        homeTheme.title = False
-        homeTheme.widget_alignment = pgm.locals.ALIGN_CENTER
-        homeTheme.widget_background_color = None
-        homeTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
-        homeTheme.widget_font_color = (255, 255, 255)
-        homeTheme.widget_font_size = 40
-        homeTheme.widget_padding = 0
-        homeTheme.widget_selection_effect = \
+        This function configures themes for various menus, such as the home menu,
+        settings menu, leaderboard menu, and prompts. It also adds buttons and other
+        interactable elements to the menus and assigns their related functions.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        # Configure home_theme 
+        home_theme = pgm.Theme()
+        home_theme.background_color = COLOUR_BORDER
+        home_theme.title = False
+        home_theme.widget_alignment = pgm.locals.ALIGN_CENTER
+        home_theme.widget_background_color = None
+        home_theme.widget_font = pgm.font.FONT_FIRACODE_BOLD
+        home_theme.widget_font_color = (255, 255, 255)
+        home_theme.widget_font_size = 40
+        home_theme.widget_padding = 0
+        home_theme.widget_selection_effect = \
             pgm.widgets.HighlightSelection(1, 0, 0).set_color((120, 120, 120))
 
-        # Configure settingsTheme
-        settingsTheme = pgm.Theme()
-        settingsTheme.background_color = settingsMenuImage
-        settingsTheme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
-        settingsTheme.title_close_button = False
-        settingsTheme.title_font_size = 40
-        settingsTheme.widget_alignment = pgm.locals.ALIGN_CENTER
-        settingsTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
-        settingsTheme.widget_font_color = (100, 12, 14)
-        settingsTheme.widget_font_size = 40
-        settingsTheme.widget_padding = 0
+        # Configure settings_theme
+        settings_theme = pgm.Theme()
+        settings_theme.background_color = settingsMenuImage
+        settings_theme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
+        settings_theme.title_close_button = False
+        settings_theme.title_font_size = 40
+        settings_theme.widget_alignment = pgm.locals.ALIGN_CENTER
+        settings_theme.widget_font = pgm.font.FONT_FIRACODE_BOLD
+        settings_theme.widget_font_color = (100, 12, 14)
+        settings_theme.widget_font_size = 40
+        settings_theme.widget_padding = 0
 
-        # Configure leaderboardTheme
-        leaderboardTheme = pgm.Theme()
-        leaderboardTheme.background_color = leaderboardMenuImage
-        leaderboardTheme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
-        leaderboardTheme.title_close_button = False
-        leaderboardTheme.title_font_size = 40
-        leaderboardTheme.widget_alignment = pgm.locals.ALIGN_CENTER
-        leaderboardTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
-        leaderboardTheme.widget_font_color = COLOUR_BLACK
-        leaderboardTheme.widget_font_size = 40
-        leaderboardTheme.widget_padding = 0
+        # Configure leaderboard_theme
+        leaderboard_theme = pgm.Theme()
+        leaderboard_theme.background_color = leaderboardMenuImage
+        leaderboard_theme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
+        leaderboard_theme.title_close_button = False
+        leaderboard_theme.title_font_size = 40
+        leaderboard_theme.widget_alignment = pgm.locals.ALIGN_CENTER
+        leaderboard_theme.widget_font = pgm.font.FONT_FIRACODE_BOLD
+        leaderboard_theme.widget_font_color = COLOUR_BLACK
+        leaderboard_theme.widget_font_size = 40
+        leaderboard_theme.widget_padding = 0
 
-        # Configure promptTheme
-        promptTheme = pgm.Theme()
-        promptTheme.background_color = promptImage
-        promptTheme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
-        promptTheme.title_close_button = False
-        promptTheme.title_font_size = 40
-        promptTheme.widget_alignment = pgm.locals.ALIGN_CENTER
-        promptTheme.widget_font = pgm.font.FONT_FIRACODE_BOLD
-        promptTheme.widget_font_color = (100, 12, 14)
-        promptTheme.widget_font_size = 40
-        promptTheme.widget_padding = 0
+        # Configure prompt_theme
+        prompt_theme = pgm.Theme()
+        prompt_theme.background_color = promptImage
+        prompt_theme.title_bar_style = pgm.widgets.MENUBAR_STYLE_NONE
+        prompt_theme.title_close_button = False
+        prompt_theme.title_font_size = 40
+        prompt_theme.widget_alignment = pgm.locals.ALIGN_CENTER
+        prompt_theme.widget_font = pgm.font.FONT_FIRACODE_BOLD
+        prompt_theme.widget_font_color = (100, 12, 14)
+        prompt_theme.widget_font_size = 40
+        prompt_theme.widget_padding = 0
         
 
         self._menu = pgm.Menu(
@@ -289,7 +298,7 @@ class MinesweeperApp(object):
             position=(0, 0, False),
             columns=10,
             rows=10,
-            theme=homeTheme,
+            theme=home_theme,
             title="",
             width=RESOLUTION
         )
@@ -302,7 +311,7 @@ class MinesweeperApp(object):
             rows=10,
             mouse_motion_selection=True,
             position=(200, 110, False),
-            theme=settingsTheme,
+            theme=settings_theme,
             title=""
         )
 
@@ -314,7 +323,7 @@ class MinesweeperApp(object):
             rows=10,
             mouse_motion_selection=True,
             position=(110, 110, False),
-            theme=leaderboardTheme,
+            theme=leaderboard_theme,
             title=""
         )
 
@@ -326,7 +335,7 @@ class MinesweeperApp(object):
             rows=2,
             mouse_motion_selection=True,
             position=(200, 110, False),
-            theme=promptTheme,
+            theme=prompt_theme,
             title=""
         )
 
@@ -438,8 +447,8 @@ class MinesweeperApp(object):
             font_size=40,
             cursor=pg.SYSTEM_CURSOR_HAND,
             selection_effect=pgm.widgets.NoneSelection(),
-            margin=(40, 40)
-        )
+            margin=(40, 40))
+        
         btn.translate(2,0)
 
         self._menu.add.image(
@@ -538,220 +547,225 @@ class MinesweeperApp(object):
         hard_table.translate(8,123)
 
 
-    def prompt(self, result:bool):
+    def prompt(self, result: bool):
         """
-        This function prompts the user with their current score and highscore
-        when a game is won or lost.
-        :param result: True if the user has one, False if the user has lost
+        Display the user's current score and high score when the game is won or lost.
+
+        This function sets the game state to finished and displays the user's score and
+        high score in the prompt menu.
+
+        Args:
+            result (bool): True if the user has won, False if the user has lost
+
+        Returns:
+            None
         """
         self._playing = False
-        score="{:03d}".format(self._timer)
+        score = "{:03d}".format(self._timer)
+        highscore = "{:03d}".format(db.get_highscore(self._difficultyNum, USER_ID)[0] or 0)
 
-        if result:
-            db.submit_score(int(score), self._difficultyNum, USER_ID)
+        self._finished = True
 
-        if db.get_highscore(self._difficultyNum,USER_ID)[0]:
-            highscore="{:03d}".format(db.get_highscore(self._difficultyNum,USER_ID)[0])
-        else:
-            highscore="{:03d}".format(0)
-
-        if result == True:
-            self._finished = True
-
-            scoreText = self._prompt.add.label(
-            score, 
-            max_char=-1, 
+        scoreText = self._prompt.add.label(
+            score,
+            max_char=-1,
             font_name=pgm.font.FONT_FIRACODE_BOLD,
             font_size=22,
-            font_color=COLOUR_WHITE, 
+            font_color=COLOUR_WHITE,
             align=pgm.locals.ALIGN_LEFT
-            )
-            scoreText.translate(69,28)
+        )
+        scoreText.translate(69, 28)
 
-            highscoreText = self._prompt.add.label(
-            highscore, 
-            max_char=-1, 
+        highscoreText = self._prompt.add.label(
+            highscore,
+            max_char=-1,
             font_name=pgm.font.FONT_FIRACODE_BOLD,
             font_size=22,
-            font_color=COLOUR_WHITE, 
+            font_color=COLOUR_WHITE,
             align=pgm.locals.ALIGN_RIGHT
-            )     
-            highscoreText.translate(-69,28)
-        
-        elif result == False:
-            self._finished = True
-
-            scoreText = self._prompt.add.label(
-            "000", 
-            max_char=-1, 
-            font_name=pgm.font.FONT_FIRACODE_BOLD,
-            font_size=22,
-            font_color=COLOUR_WHITE, 
-            align=pgm.locals.ALIGN_LEFT
-            )
-            scoreText.translate(69,28)
-
-            highscoreText = self._prompt.add.label(
-            highscore, 
-            max_char=-1, 
-            font_name=pgm.font.FONT_FIRACODE_BOLD,
-            font_size=22,
-            font_color=COLOUR_WHITE, 
-            align=pgm.locals.ALIGN_RIGHT
-            )     
-            highscoreText.translate(-69,28)
+        )
+        highscoreText.translate(-69, 28)
 
 
     def update_gui(self, events):
         """
-        Draws and updates the main interface, excluding the grid. It also draws
-        and blits images that are not capable to be drawn by pygame-menu.
-        :param events: Pygame events such as user inputs and click coordinates
+        Update and draw the main interface excluding the grid, and handle non-pygame-menu images.
+
+        This function updates and draws the main game interface, including elements like
+        flags, timers, and icons. It also handles drawing images that are not part of
+        the pygame-menu system.
+
+        Args:
+            events (event): Pygame events such as user inputs and click coordinates
+
+        Returns:
+            None
         """
         self._menu.update(events)
         self._menu.draw(screen)
-        if self._finished == True:
+
+        if self._finished:
             self._prompt.update(events)
             self._prompt.draw(screen)
 
-        certificateImg = pg.image.load(CERTIFICATE_ICON)
-        #certificateImgRect = certificateImg.get_rect(center=())
-        screen.blit(certificateImg, (620,16))
+        certificate_img = pg.image.load(CERTIFICATE_ICON)
+        screen.blit(certificate_img, (620, 16))
 
-        flagImg = pg.image.load(FLAG_ICON)
-        flagImg = pg.transform.smoothscale(flagImg, (50, 50))
-        flagImgRect = flagImg.get_rect(center=((TILE_SIZE*self._gridWidth)//2 - 120, TAB_SIZE//2))
-        screen.blit(flagImg, flagImgRect)
+        flag_img = pg.image.load(FLAG_ICON)
+        flag_img = pg.transform.smoothscale(flag_img, (50, 50))
+        flag_img_rect = flag_img.get_rect(center=((TILE_SIZE * self._gridWidth) // 2 - 120, TAB_SIZE // 2))
+        screen.blit(flag_img, flag_img_rect)
 
-        flagCount = numberFont.render(str(self._flagCount).zfill(1), True, COLOUR_WHITE)
-        flagCountRect = flagCount.get_rect(midleft=((TILE_SIZE*self._gridWidth)//2 - 85, TAB_SIZE//2))
-        screen.blit(flagCount, flagCountRect)
-        
-        clockImg = pg.image.load(CLOCK_ICON)
-        clockImg = pg.transform.smoothscale(clockImg, (50, 50))
-        clockImgRect = clockImg.get_rect(center=((TILE_SIZE*self._gridWidth)//2 + 90, TAB_SIZE//2))
-        screen.blit(clockImg, clockImgRect)
+        flag_count = numberFont.render(str(self._flagCount).zfill(1), True, COLOUR_WHITE)
+        flag_count_rect = flag_count.get_rect(midleft=((TILE_SIZE * self._gridWidth) // 2 - 85, TAB_SIZE // 2))
+        screen.blit(flag_count, flag_count_rect)
 
-        counter = numberFont.render(str(self._timer).zfill(3), True, COLOUR_WHITE)
-        counterRect = counter.get_rect(midleft=((TILE_SIZE*self._gridWidth)//2 + 120, TAB_SIZE//2))
-        screen.blit(counter, counterRect)
+        clock_img = pg.image.load(CLOCK_ICON)
+        clock_img = pg.transform.smoothscale(clock_img, (50, 50))
+        clock_img_rect = clock_img.get_rect(center=((TILE_SIZE * self._gridWidth) // 2 + 90, TAB_SIZE // 2))
+        screen.blit(clock_img, clock_img_rect)
+
+        timer_value = numberFont.render(str(self._timer).zfill(3), True, COLOUR_WHITE)
+        timer_value_rect = timer_value.get_rect(midleft=((TILE_SIZE * self._gridWidth) // 2 + 120, TAB_SIZE // 2))
+        screen.blit(timer_value, timer_value_rect)
     
 
     def setup_grid(self):
         """
-        Creates an empty matrix based on the size of the grid. The matrix is then looped
-        through and a Tile object is created at every coordinate.
+        Initialize the game grid.
+
+        This function creates an empty matrix based on the size of the grid and initializes
+        Tile objects at each coordinate.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
-        self.grid = [[0 for column in range(self._gridWidth)] for row in range(self._gridHeight)] 
-        for y in range(self._gridHeight):
-                for x in range(self._gridWidth):
-                    self.grid[y][x] = Tile(y, x)
+        self.grid = [[Tile(row, column) for column in range(self._gridWidth)] for row in range(self._gridHeight)]
 
 
     def draw_grid(self):
         """
-        This handles the drawing of the grid itself. It only draws tiles that have changed 
-        since the last time they were drawn using the update attribute.
-        """
-        for y in range(self._gridHeight):
-            for x in range(self._gridWidth):
-                if self.grid[y][x].update == True:
-                    self.grid[y][x].draw()
-                    self.grid[y][x].update = False
+        Draw the grid, updating only changed tiles.
 
+        This function handles the drawing of the grid. It iterates through the grid and 
+        draws only the tiles that have changed since the last drawing by checking the 
+        `update` attribute.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        for row in self.grid:
+            for tile in row:
+                if tile.update:
+                    tile.draw()
+                    tile.update = False
 
     def reveal_tiles(self, gridY, gridX):
         """
         This function allows for the 'cluster reveal' effect that causes a section of
         tiles to be revealed at once when the user clicks on an empty collection of
         tiles.
-        :param gridY: The y-axis coordinate for the location of the tile to reveal around
-        :param gridX: The x-axis coordinate for the location of the tile to reveal around
+
+        Args:
+            gridY (int): The y-axis coordinate for the location of the tile to reveal around
+            gridX (int): The x-axis coordinate for the location of the tile to reveal around
+
+        Return:
+            None
         """
-        if self.grid[gridY][gridX].clicked == False:
+        def is_valid(y, x):
+            return 0 <= y < len(self.grid) and 0 <= x < len(self.grid[0])
+
+        tile = self.grid[gridY][gridX]
+
+        if not tile.clicked:
             self._unknownTileCount -= 1
-        self.grid[gridY][gridX].flag = False
-        self.grid[gridY][gridX].clicked = True
-        self.grid[gridY][gridX].update = True
 
-        if (self.grid[gridY][gridX].count == 0) and (self.grid[gridY][gridX].mine == False):
+        tile.flag = False
+        tile.clicked = True
+        tile.update = True
+
+        if tile.count == 0 and not tile.mine:
             for j in range(-1, 2):
-                if (0 <= (gridY+j) < len(self.grid)):
-                    for i in range(-1, 2):
-                        if (0 <= (gridX+i) < len(self.grid[0])):
-                            if not self.grid[gridY+j][gridX+i].clicked:
-                                self.reveal_tiles(gridY+j, gridX+i)
+                for i in range(-1, 2):
+                    if i == 0 and j == 0:
+                        continue  # Skip the current tile
+                    if is_valid(gridY + j, gridX + i):
+                        neighbor_tile = self.grid[gridY + j][gridX + i]
+                        if not neighbor_tile.clicked:
+                            self.reveal_tiles(gridY + j, gridX + i)
 
-        elif self.grid[gridY][gridX].mine == True:
+        elif tile.mine:
             for y in range(self._gridHeight):
                 for x in range(self._gridWidth):
-                    if self.grid[y][x].mine == True:
+                    if self.grid[y][x].mine:
                         self.grid[y][x].clicked = True
                         self.grid[y][x].update = True
 
 
     def generate_grid(self, gridY, gridX):
         """
-        Based on the difficulty of the game, a random board is generated with mines
-        in different locations. The initial click coordinates are required to prevent
-        mines being placed where the user first clicks, or around where the user first 
-        clicks. This prevents unfair games where the user instantly loses. Cluster checks
-        are also performed to prevent more than four mines being placed in any 3x3 grid in
-        the matrix; this is to allow the game to be mathematically solveable without the
-        user having to guess.
-        :param gridY: The y-axis coordinate of the first tile clicked
-        :param gridX: The x-axis coordinate of the first tile clicked
+        Generate a random game board with mines and initial tile clicks based on game difficulty.
+
+        This function generates a random game board with mines placed in different locations.
+        The initial click coordinates are used to prevent mines from being placed where the
+        user first clicks, ensuring that the game starts fairly. Cluster checks are performed
+        to avoid placing more than four mines in any 3x3 grid in the matrix, making the game
+        mathematically solvable without the user having to guess.
+        
+        Args:
+
+        Return:
+            None
         """
+
+        # This is for debugging purposes.
         if self._seed != 0:
             random.seed(self._seed)
 
-        for j in range(-1, 2):
-            if (0 <= (gridY + j) < len(self.grid)):
-                for i in range(-1, 2):
-                    if (0 <= (gridX + i) < len(self.grid[0])):
-                        self.grid[gridY + j][gridX + i].clicked = True
+        def check_cluster_count(y, x):
+            count = 0
+            for j in range(max(-1, -y), min(2, len(self.grid) - y)):
+                for i in range(max(-1, -x), min(2, len(self.grid[0]) - x)):
+                    if self.grid[y + j][x + i].mine:
+                        count += 1
+            return count
+
+        for j in range(max(-1, -gridY), min(2, len(self.grid) - gridY)):
+            for i in range(max(-1, -gridX), min(2, len(self.grid[0]) - gridX)):
+                self.grid[gridY + j][gridX + i].clicked = True
 
         currentMineCount = 0
         while currentMineCount < self._mineCount:
-            clusterCount = 0
             self.gridX = random.randint(0, self._gridWidth - 1)
             self.gridY = random.randint(0, self._gridHeight - 1)
 
-            if self.grid[self.gridY][self.gridX].clicked == True:
+            if self.grid[self.gridY][self.gridX].clicked or self.grid[self.gridY][self.gridX].mine:
                 continue
 
-            if self.grid[self.gridY][self.gridX].mine == True:
-                continue
-
-            for j in range(-1, 2):
-                if (0 <= (self.gridY + j) < len(self.grid)):
-                    for i in range(-1, 2):
-                        if (0 <= (self.gridX + i) < len(self.grid[0])):
-                            if self.grid[self.gridY + j][self.gridX + i].mine == True:
-                                clusterCount += 1
-                            if self.grid[self.gridY + j][self.gridX + i].clicked == True:
-                                continue
+            clusterCount = check_cluster_count(self.gridY, self.gridX)
 
             if clusterCount > 3:
                 continue
 
-            else:
-                self.grid[self.gridY][self.gridX].mine = True
-                for j in range(-1, 2):
-                    if (0 <= (self.gridY + j) < len(self.grid)):
-                        for i in range(-1, 2):
-                            if (0 <= (self.gridX + i) < len(self.grid[0])):
-                                if not ((j == 0) and (i == 0)):
-                                    if self.grid[self.gridY + j][self.gridX + i].mine == False:
-                                        self.grid[self.gridY + j][self.gridX + i].count += 1
-                currentMineCount += 1
+            self.grid[self.gridY][self.gridX].mine = True
+            for j in range(max(-1, -self.gridY), min(2, len(self.grid) - self.gridY)):
+                for i in range(max(-1, -self.gridX), min(2, len(self.grid[0]) - self.gridX)):
+                    if not (j == 0 and i == 0):
+                        neighbor_tile = self.grid[self.gridY + j][self.gridX + i]
+                        if not neighbor_tile.mine:
+                            neighbor_tile.count += 1
+            currentMineCount += 1
 
-        for j in range(-1, 2):
-            if (0 <= (gridY + j) < len(self.grid)):
-                for i in range(-1, 2):
-                    if (0 <= (gridX + i) < len(self.grid[0])):
-                        if not ((j == 0) and (i == 0)):
-                            self.grid[gridY + j][gridX + i].clicked = False
+        for j in range(max(-1, -gridY), min(2, len(self.grid) - gridY)):
+            for i in range(max(-1, -gridX), min(2, len(self.grid[0]) - gridX)):
+                self.grid[gridY + j][gridX + i].clicked = False
 
         for y in range(self._gridHeight):
             for x in range(self._gridWidth):
@@ -760,73 +774,79 @@ class MinesweeperApp(object):
 
     def mainLoop(self):
         """
-        This is the main loop of the program, which collects all of the previous
-        functions and handles the constant updating of the interface and allows
-        for inputs to be registered directly using the pygame module.
+        Main game loop that handles the constant updating of the interface and user inputs.
+
+        Args:
+            None
+        
+        Returns:
+            None
         """
+
         pg.time.set_timer(pg.USEREVENT, 1000)
-        gridClickable = True
+        grid_clickable = True
+
         while True:
             current_menu = self._menu.get_current()
             current_menu_id = current_menu.get_id()
-            if current_menu_id == "settings_menu_instance":
-                gridClickable = False
-            if current_menu_id == "leaderboard_menu_instance":
-                gridClickable = False
-            if current_menu_id == "home_menu_instance":
-                gridClickable = True
+            
+            if current_menu_id == "settings_menu_instance" or current_menu_id == "leaderboard_menu_instance":
+                grid_clickable = False
+            elif current_menu_id == "home_menu_instance":
+                grid_clickable = True
+            
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
                     exit()
-                
-                if (self._gamestart == True) and (self._playing == True) and (gridClickable == True) and (event.type == pg.USEREVENT):
-                    self._timer += 1
-                    
-                elif (event.type == pg.MOUSEBUTTONDOWN) and (gridClickable == True):
-                    if event.pos[1] >= 100:
-                        y = int((event.pos[1] - 100)//TILE_SIZE)
-                        x = int(event.pos[0]//TILE_SIZE)
 
-                        if (y < self._gridHeight) and (x < self._gridWidth) and (self._gamestart == False):
+                if self._gamestart and self._playing and grid_clickable and event.type == pg.USEREVENT:
+                    self._timer += 1
+
+                elif event.type == pg.MOUSEBUTTONDOWN and grid_clickable:
+                    if event.pos[1] >= 100:
+                        y = int((event.pos[1] - 100) // TILE_SIZE)
+                        x = int(event.pos[0] // TILE_SIZE)
+
+                        if y < self._gridHeight and x < self._gridWidth and not self._gamestart:
                             self._gamestart = True
 
+                        tile = self.grid[y][x]
+
                         try:
-                            if self.grid[y][x]:
-                                if self._unknownTileCount == (self._gridWidth*self._gridHeight):
-                                    self.generate_grid(y,x)
-                                    self.reveal_tiles(y,x)
+                            if tile:
+                                if self._unknownTileCount == self._gridWidth * self._gridHeight:
+                                    self.generate_grid(y, x)
+                                    self.reveal_tiles(y, x)
 
-                            if self._playing == True:
-                                if (event.button == 1) and (self.grid[y][x].flag == False):
-                                    self.reveal_tiles(y,x)
+                                if self._playing:
+                                    if event.button == 1 and not tile.flag:
+                                        self.reveal_tiles(y, x)
 
-                                    if self.grid[y][x].mine == True:
-                                        self.prompt(False)
+                                        if tile.mine:
+                                            self.prompt(False)
 
-                                    if self._unknownTileCount-1 == self._mineCount:
-                                        self.prompt(True)
+                                        if self._unknownTileCount - 1 == self._mineCount:
+                                            self.prompt(True)
 
-                                elif (event.button == 3) and (self.grid[y][x].clicked == False):
-                                    if (self.grid[y][x].flag == False) and (self._flagCount > 0):
-                                        self.grid[y][x].update = True
-                                        self.grid[y][x].flag = True
-                                        self._flagCount -= 1
-                                    elif (self.grid[y][x].flag == True):
-                                        self.grid[y][x].update = True
-                                        self.grid[y][x].flag = False
-                                        self._flagCount += 1
-
+                                    elif event.button == 3 and not tile.clicked:
+                                        if not tile.flag and self._flagCount > 0:
+                                            tile.update = True
+                                            tile.flag = True
+                                            self._flagCount -= 1
+                                        elif tile.flag:
+                                            tile.update = True
+                                            tile.flag = False
+                                            self._flagCount += 1
 
                         except IndexError:
                             pass
-        
+
             self.draw_grid()
             self.update_gui(events)
-            pg.display.update()
+            pg.display.flip()
 
 
-
-
-App = MinesweeperApp()
-App.mainLoop()
+if __name__ == "__main__":
+    App = MinesweeperApp()
+    App.mainLoop()
