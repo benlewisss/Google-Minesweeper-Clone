@@ -24,6 +24,7 @@ USER_ID=1
 
 # Initiates the database and creates a guest user if it does not exist
 db = database.Database("data/database.sqlite")
+db.create_tables()
 db.create_user("Guest")
 
 # Initiate pygame and set the window paramters
