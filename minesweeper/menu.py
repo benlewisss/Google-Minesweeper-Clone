@@ -1,70 +1,64 @@
-# Import build-in modules for system and basic operations
 import os
 import random
-
-# Tries to import pygame, and installs it using PIP if it is not already installed
-try:
-    import pygame as pg
-    import pygame_menu as pgm
-except ModuleNotFoundError:
-    os.system("py -m pip install -U pygame --user")
-    os.system("py -m pip install -U pygame_menu --user")
-    import pygame as pg
-    import pygame_menu as pgm
-
-# Import other files from the module
+import pygame as pg
+import pygame_menu as pgm
 from config import *
 import database
 
-# Clears the terminal for debugging purposes
+"""
+If PyGame cannot be imported, install using the following PIP commands:
+
+> py -m pip install -U pygame --user
+> py -m pip install -U pygame_menu --user
+"""
+
+# Clear the terminal for debugging purposes
 os.system("cls")
 
-# Sets the default user when the game first starts
-USER_ID=1
-
-# Initiates the database and creates a guest user if it does not exist
-db = database.Database("data/database.sqlite")
-db.create_tables()
-db.create_user("Guest")
-
-# Initiate pygame and set the window paramters
+# Initialize pygame and set window parameters
 pg.init()
 screen = pg.display.set_mode((RESOLUTION, RESOLUTION))
 
 # Fonts used by numbers such as the timer and flag counter
 numberFont = pg.font.Font(NUMBER_FONT, 35)
 
-# List of possible colours that mines could be once revealed
+# List of possible mine colors once revealed
 mineColours = [MINE_BLUE, MINE_CYAN, MINE_MAGENTA, MINE_ORANGE, MINE_PURPLE, MINE_RED, MINE_YELLOW]
 
-# Directories of the number-images to use on the board
+# Directories of number images to use on the board
 numbers = [NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4]
 
-# Creates Pygame-Menu base images that can be used on the menu interfaces
-settingsMenuImage = pgm.baseimage.BaseImage(
-    image_path=SETTINGS_MENU,
-    drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+# Create Pygame-Menu base images for menu interfaces
+settingsMenuImage = pgm.baseimage.BaseImage(image_path=SETTINGS_MENU, drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+leaderboardMenuImage = pgm.baseimage.BaseImage(image_path=LEADERBOARD_MENU, drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+promptImage = pgm.baseimage.BaseImage(image_path=PROMPT, drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
 
-leaderboardMenuImage = pgm.baseimage.BaseImage(
-    image_path=LEADERBOARD_MENU,
-    drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+# Constants
+TILE_SIZE = None  # Tile size will be set based on difficulty
+USER_ID = 1  # Default user when the game first starts
 
-promptImage = pgm.baseimage.BaseImage(
-    image_path=PROMPT,
-    drawing_mode=pgm.baseimage.IMAGE_MODE_SIMPLE)
+# Database initialization
+db = database.Database("data/database.sqlite")
+db.create_tables()
+db.create_user("Guest")
 
-# Sets the size of each tile globablly as it is referenced in multiple classes 
 def tilesize_set_constant(tileSize):
+    """
+    Set the global TILE_SIZE based on the chosen difficulty.
+    Args:
+        tileSize (int): The size of each tile.
+    """
     global TILE_SIZE
     TILE_SIZE = tileSize 
 
-# Sets the user that is logged in globally as it is referenced in multiple classes
 def user_set_constant(username):
+    """
+    Set the global USER_ID to the user's ID.
+    Args:
+        username (str): The username of the user.
+    """
     global USER_ID
     USER_ID = db.create_user(username)
-
-
-
 
 class Tile(pg.sprite.DirtySprite):
     """
@@ -76,9 +70,10 @@ class Tile(pg.sprite.DirtySprite):
     """
     def __init__(self, gridY, gridX):
         """
-        Sets all the attributes for the tile.
-        :param gridY: The y-axis coordinate for the location of the tile
-        :param gridX: The x-axis coordinate for the location of the tile
+        Initialize a tile with its attributes.
+        Args:
+            gridY (int): The y-coordinate on the grid.
+            gridX (int): The x-coordinate on the grid.
         """
         super().__init__()
         self.gridY = gridY
@@ -89,7 +84,7 @@ class Tile(pg.sprite.DirtySprite):
         self.update = True
         self.mineColour = random.choice(mineColours)
         self.count = 0
-        self.pixelPosition = (gridX*TILE_SIZE, (gridY*TILE_SIZE) + 100)
+        self.pixelPosition = (gridX * TILE_SIZE, (gridY * TILE_SIZE) + 100)
         
     def draw(self):
         """
@@ -148,24 +143,6 @@ class MinesweeperApp(object):
     that have predefined types, as some attributes can change between instances of the game,
     without closing the window.
     """
-    _visualize: bool
-    _playing: bool
-    _finished: bool
-    _gamestart: bool
-    _menu: "pgm.Menu"
-    _settings: "pgm.Menu"
-    _leaderboard: "pgm.Menu"
-    _prompt: "pgm.Menu"
-    _gridWidth: int
-    _gridHeight: int
-    _mineCount: int
-    _tileSize: int
-    _seed: int
-    _unknownTileCount: int
-    _timer: int
-    _flagCount: int
-    _difficultyNum: int
-    _difficultyName: str
 
     def __init__(self):
         """
