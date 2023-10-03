@@ -24,7 +24,8 @@ This project was originally an A-Level NEA (*UK High School CS Project*), and it
    * [Revealing Tiles](#revealing-tiles)
    * [Generating the Grid](#generating-the-grid)
    * [Main Game Loop](#main-game-loop)
-6. [Conclusion](#6-conclusion)
+6. [Major Issues](#6-issues)
+7. [Contributors](#7-contributors)
 
 ## 1. Introduction
 
@@ -116,6 +117,17 @@ The `generate_grid` method generates the game grid by randomly placing mines. It
 
 The main game loop continuously updates the game interface, handles user input, and manages the game state. The timer counts up during gameplay, and the player wins by revealing all non-mine tiles. The `prompt` method displays the player's score and high score when the game is won or lost.
 
-## 6. Contributors
+## 6. Issues
+
+* Selecting difficulty causes background to go black
+* Selecting difficulty can reset the logged in user
+* Pygame causes major performance problems at higher refresh rates
+* The program has a set window size and is not dynamic, causing minimal portability
+  * This causes very high resolution screens or extremely low resolution screens to have adverse effects (best played on 1080p or 1440p resolutions)
+* Database is not encrypted
+* Some elements drawn over twice when opening settings menu
+* Leaderboard formatting is incorrect, and data is placed in wrong locations
+
+## 7. Contributors
 
 *[Ben Lewis](https://github.com/benlewisss "Click here to be taken to Ben's GitHub profile!")*
